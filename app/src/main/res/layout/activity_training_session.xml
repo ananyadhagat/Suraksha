@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/trainingLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/trainingInstruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Please type the sentence shown"
+        android:textSize="18sp"
+        android:layout_marginBottom="20dp" />
+    <TextView
+        android:id="@+id/sampleSentence"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="The quick brown fox jumps over the lazy dog."
+        android:textSize="16sp"
+        android:textStyle="italic"
+        android:layout_marginBottom="16dp"/>
+
+
+    <EditText
+        android:id="@+id/etTypingArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Start typing here..."
+        android:minLines="3"
+        android:inputType="text" />
+
+    <View
+        android:id="@+id/gestureZone"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="16dp"
+        android:background="#E0E0E0" />
+
+    <Button
+        android:id="@+id/btnSubmitTraining"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
