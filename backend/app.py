@@ -6,47 +6,35 @@ import datetime
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-# ✅ MongoDB Setup
-try:
-    client = MongoClient("mongodb+srv://ananya2004d:1anan.ya9@surakshak.aait0ep.mongodb.net/?retryWrites=true&w=majority&appName=Surakshak")
-    db = client["surakshak_db"]
-    collection = db["training_sessions"]
-    print("✅ MongoDB connected!")
-except Exception as mongo_err:
-    print("❌ MongoDB connection error:", mongo_err)
+# ✅ MongoDB Connection 
+client = MongoClient("mongodb+srv://ananya2004d:1anan.ya9@surakshak.aait0ep.mongodb.net/?retryWrites=true&w=majority&appName=Surakshak")
+db = client['surakshak_db']
+training_collection = db['training_sessions']
 
-@app.route("/api/train-behavior", methods=["POST"])
-def receive_behavior_data():
+@app.route('/upload-training-batch', methods=['POST'])
+def upload_training_batch():
     try:
-        # DEBUG: Raw request info
-        print("📩 Request Headers:", request.headers)
-        print("📩 Raw Body:", request.data)
+        data = request.json
+        print("\n📩 Received data:", data)
 
-        data = request.get_json(force=True)
-        print("✅ Parsed JSON:", data)
+        # Add timestamp for tracking
+        data['timestamp'] = datetime.datetime.now()
 
-        # Validation
-        required_fields = [
-            "typingSpeed", "dwellTime", "flightTime",
-            "backspaceCount", "tapPressure", "swipeDirection",
-            "tiltAngle", "screenHoldTime"
-        ]
-        for field in required_fields:
-            if field not in data:
-                print(f"⚠️ Missing field: {field}")
-                return jsonify({"error": f"Missing field: {field}"}), 400
-
-        data["timestamp"] = datetime.datetime.utcnow()
-
-        # ✅ Insert to MongoDB
-        result = collection.insert_one(data)
+        # Insert into MongoDB
+        result = training_collection.insert_one(data)
         print("✅ Inserted ID:", result.inserted_id)
 
-        return jsonify({"message": "Behavior data saved successfully!"}), 200
+        return jsonify({
+            "status": "success",
+            "message": "Training data stored in MongoDB ✅"
+        }), 200
 
     except Exception as e:
-        print("❌ Exception:", str(e))
-        return jsonify({"error": str(e)}), 500
+        print("❌ Error while saving data:", str(e))
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

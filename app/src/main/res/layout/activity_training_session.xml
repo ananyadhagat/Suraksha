@@ -1,48 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/trainingLayout"
+    android:id="@+id/training_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:padding="24dp"
-    android:orientation="vertical">
+    android:gravity="center"
+    android:background="#ffffff">
 
     <TextView
-        android:id="@+id/trainingInstruction"
+        android:id="@+id/session_progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Please type the sentence shown"
+        android:text="Step 1 of 4"
         android:textSize="18sp"
-        android:layout_marginBottom="20dp" />
-    <TextView
-        android:id="@+id/sampleSentence"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="The quick brown fox jumps over the lazy dog."
-        android:textSize="16sp"
-        android:textStyle="italic"
-        android:layout_marginBottom="16dp"/>
+        android:textColor="#333333"
+        android:layout_marginBottom="16dp" />
 
+    <TextView
+        android:id="@+id/sentence_to_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sentence goes here"
+        android:textSize="30sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:layout_marginBottom="29dp" />
 
     <EditText
-        android:id="@+id/etTypingArea"
+        android:id="@+id/user_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Start typing here..."
-        android:minLines="3"
-        android:inputType="text" />
-
-    <View
-        android:id="@+id/gestureZone"
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_marginTop="16dp"
-        android:background="#E0E0E0" />
+        android:hint="Type the above sentence"
+        android:inputType="text"
+        android:background="@android:drawable/editbox_background"
+        android:padding="20dp"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp" />
 
     <Button
-        android:id="@+id/btnSubmitTraining"
-        android:layout_width="wrap_content"
+        android:id="@+id/next_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit"
-        android:layout_marginTop="16dp" />
+        android:text="Next"
+        android:textSize="18sp"
+        android:backgroundTint="#3FC7FF"
+        android:textColor="#ffffff"
+        android:padding="12dp" />
 
 </LinearLayout>

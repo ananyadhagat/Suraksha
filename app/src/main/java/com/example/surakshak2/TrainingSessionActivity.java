@@ -1,200 +1,122 @@
 package com.example.surakshak2;
 
 import android.app.Activity;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
-public class TrainingSessionActivity extends Activity implements SensorEventListener {
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 
-    EditText etTypingArea;
-    View gestureZone;
-    Button btnSubmit;
+public class TrainingSessionActivity extends Activity {
 
-    long sessionStartTime;
-    long lastKeyTime;
-    long keyPressTime;
-    int totalChars = 0;
-    int backspaceCount = 0;
+    String[] trainingSentences = {
+            "The quick brown fox jumps over the lazy dog.",
+            "Security is more about behavior than passwords.",
+            "My typing speed is unique like a fingerprint.",
+            "I bank safely from my mobile every day."
+    };
 
-    ArrayList<Long> dwellTimes = new ArrayList<>();
-    ArrayList<Long> flightTimes = new ArrayList<>();
+    int currentStep = 0;
+    List<JSONObject> trainingDataList = new ArrayList<>();
 
-    float totalTapPressure = 0;
-    int tapCount = 0;
-    float pitch = 0f;
-    String swipeDirection = "None";
-
-    GestureDetector gestureDetector;
-    SensorManager sensorManager;
-    Sensor rotationSensor;
+    TextView sentenceView, stepView;
+    EditText inputField;
+    Button nextBtn;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training_session);
 
-        etTypingArea = findViewById(R.id.etTypingArea);
-        gestureZone = findViewById(R.id.gestureZone);
-        btnSubmit = findViewById(R.id.btnSubmitTraining);
-        sessionStartTime = System.currentTimeMillis();
+        sentenceView = findViewById(R.id.sentence_to_type);
+        inputField = findViewById(R.id.user_input);
+        nextBtn = findViewById(R.id.next_button);
+        stepView = findViewById(R.id.session_progress);
 
-        // ✅ Initialize lists
-        dwellTimes = new ArrayList<>();
-        flightTimes = new ArrayList<>();
+        updateScreen();
 
-        etTypingArea.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                keyPressTime = System.currentTimeMillis();
-                if (keyCode == 67) backspaceCount++;
-            }
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                long releaseTime = System.currentTimeMillis();
-                long dwell = releaseTime - keyPressTime;
-                dwellTimes.add(dwell);
+        nextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-                if (lastKeyTime != 0) {
-                    long flight = keyPressTime - lastKeyTime;
-                    flightTimes.add(flight);
+                if (currentStep >= trainingSentences.length) return;  // 🔒 prevent crash
+
+                String typed = inputField.getText().toString().trim();
+                String expected = trainingSentences[currentStep];
+
+                if (!typed.equals(expected)) {
+                    Toast.makeText(TrainingSessionActivity.this, "Typed sentence doesn't match!", Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
-                lastKeyTime = releaseTime;
-                totalChars++;
+                JSONObject session = new JSONObject();
+                try {
+                    session.put("sentence", expected);
+                    session.put("typed_text", typed);
+                    session.put("avg_typing_speed", 145); // Placeholder, replace with actual
+                    session.put("swipe_length", 310); // Placeholder
+                    session.put("gyro_pattern", 1); // Placeholder
+                    session.put("accel_variance", 0.3); // Placeholder
+                    trainingDataList.add(session);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                currentStep++;
+
+                if (currentStep < trainingSentences.length) {
+                    updateScreen();
+                } else {
+                    sendTrainingDataToBackend();
+                }
             }
-            return false;
         });
-
-
-
-
-    gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                float diffX = e2.getX() - e1.getX();
-                float diffY = e2.getY() - e1.getY();
-                swipeDirection = (Math.abs(diffX) > Math.abs(diffY)) ? (diffX > 0 ? "Right" : "Left") : (diffY > 0 ? "Down" : "Up");
-                return true;
-            }
-        });
-
-        gestureZone.setOnTouchListener((v, event) -> {
-            tapCount++;
-            totalTapPressure += event.getPressure();
-            gestureDetector.onTouchEvent(event);
-            return true;
-        });
-
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_NORMAL);
-
-        btnSubmit.setOnClickListener(v -> finishTraining() );
-
-
-
     }
 
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        float[] rotationMatrix = new float[9];
-        SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
-        float[] orientation = new float[3];
-        SensorManager.getOrientation(rotationMatrix, orientation);
-        pitch = (float) Math.toDegrees(orientation[1]);
+        void updateScreen() {
+        sentenceView.setText(trainingSentences[currentStep]);
+        inputField.setText("");
+        stepView.setText("Step " + (currentStep + 1) + " of " + trainingSentences.length);
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-
-    private void finishTraining() {
-
-            long sessionTime = System.currentTimeMillis() - sessionStartTime;
-
-            double avgDwell = dwellTimes.stream().mapToLong(i -> i).average().orElse(0);
-            double avgFlight = flightTimes.stream().mapToLong(i -> i).average().orElse(0);
-            double typingSpeed = sessionTime / (double) Math.max(totalChars, 1);
-            double avgPressure = (tapCount > 0) ? totalTapPressure / tapCount : 0;
-
-            try {
-                JSONObject behavior = new JSONObject();
-                behavior.put("typingSpeed", Double.isNaN(typingSpeed) ? 0 : typingSpeed);
-                behavior.put("dwellTime", Double.isNaN(avgDwell) ? 0 : avgDwell);
-                behavior.put("flightTime", Double.isNaN(avgFlight) ? 0 : avgFlight);
-                behavior.put("backspaceCount", backspaceCount);
-                behavior.put("tapPressure", Double.isNaN(avgPressure) ? 0 : avgPressure);
-                behavior.put("swipeDirection", swipeDirection != null ? swipeDirection : "None");
-                behavior.put("tiltAngle", Double.isNaN(pitch) ? 0 : pitch);
-                behavior.put("screenHoldTime", sessionTime / 1000);
-
-                // ✅ Show local confirmation
-                Toast.makeText(this, "Captured! Sending to backend...", Toast.LENGTH_SHORT).show();
-                Log.d("BEHAVIOR_JSON", behavior.toString());
-
-                new Thread(() -> {
-                    HttpURLConnection conn = null;
-                    try {
-                        URL url = new URL("http://192.168.29.36:5000/api/train-behavior"); // ✅ Your Flask IP
-                        conn = (HttpURLConnection) url.openConnection();
-                        conn.setRequestMethod("POST");
-                        conn.setRequestProperty("Content-Type", "application/json; utf-8");
-                        conn.setRequestProperty("Accept", "application/json");
-                        conn.setDoOutput(true);
-
-                        OutputStream os = conn.getOutputStream();
-                        byte[] input = behavior.toString().getBytes("utf-8");
-                        os.write(input, 0, input.length);
-                        os.flush();
-                        os.close();
-
-                        int responseCode = conn.getResponseCode();
-                        Log.d("FLASK_RESPONSE_CODE", String.valueOf(responseCode));
-
-                        if (responseCode == 200) {
-                            runOnUiThread(() ->
-                                    Toast.makeText(TrainingSessionActivity.this, "✅ Data sent to Flask!", Toast.LENGTH_SHORT).show()
-                            );
-                        } else {
-                            runOnUiThread(() ->
-                                    Toast.makeText(TrainingSessionActivity.this, "❌ Server Error: " + responseCode, Toast.LENGTH_LONG).show()
-                            );
-                            Log.e("SERVER_ERROR", "Response code: " + responseCode);
-                        }
-
-                    } catch (Exception e) {
-                        runOnUiThread(() ->
-                                Toast.makeText(TrainingSessionActivity.this, "❌ Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                        );
-                        Log.e("NETWORK_ERROR", e.toString());
-
-                    } finally {
-                        if (conn != null) conn.disconnect();
-                    }
-                }).start();
-
-            } catch (Exception e) {
-                Toast.makeText(this, "❌ JSON error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.e("JSON_ERROR", e.toString());
-            }
-
-            // ✅ Stop sensors
-            sensorManager.unregisterListener(this);
-            finish();
+    void sendTrainingDataToBackend() {
+        JSONObject finalObject = new JSONObject();
+        JSONArray batch = new JSONArray(trainingDataList);
+        try {
+            finalObject.put("userID", "user_01");
+            finalObject.put("training_batch", batch);
+            finalObject.put("label", 1);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-    }
 
+        String url = "http://192.168.29.36:5000/upload-training-batch"; // 🔁 IP
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, finalObject,
+                response -> {
+                    Toast.makeText(this, "✅ Training data sent!", Toast.LENGTH_SHORT).show();
+                },
+                error -> {
+                    Toast.makeText(this, "❌ Error: " + error.toString(), Toast.LENGTH_SHORT).show();
+                });
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(request);
+    }
+}
