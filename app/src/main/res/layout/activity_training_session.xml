@@ -47,5 +47,14 @@
         android:backgroundTint="#3FC7FF"
         android:textColor="#ffffff"
         android:padding="12dp" />
+    <Button
+        android:id="@+id/train_model_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Train ML Model"
+        android:backgroundTint="#0493FA"
+        android:layout_marginTop="16dp"
+        />
+
 
 </LinearLayout>
