@@ -7,7 +7,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -25,7 +24,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +58,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
     long screenHoldStartTime = 0;
     long screenHoldEndTime = 0;
 
-    // Accel & Gyro pattern
     SensorManager sensorManager;
     Sensor accelSensor, gyroSensor;
     ArrayList<Float> accelValues = new ArrayList<>();
@@ -77,7 +74,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
         stepView = findViewById(R.id.session_progress);
         trainModelButton = findViewById(R.id.train_model_button);
 
-        // Sensor setup
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -134,7 +130,7 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
             screenHoldEndTime = System.currentTimeMillis();
 
             long typingDurationMillis = typingEndTime - typingStartTime;
-            double typingSpeed = (typed.length() / (typingDurationMillis / 1000.0)); // chars/sec
+            double typingSpeed = (typed.length() / (typingDurationMillis / 1000.0));
             long screenHoldTime = screenHoldEndTime - screenHoldStartTime;
 
             JSONObject session = new JSONObject();
@@ -152,6 +148,7 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
                 session.put("screen_hold_time", screenHoldTime);
 
                 trainingDataList.add(session);
+                generateBehaviorVector();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -166,17 +163,52 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
             }
         });
 
-        // ✅ ML Train Button listener
-        trainModelButton.setOnClickListener(v -> {
-            triggerMLModelTraining();
-        });
+        trainModelButton.setOnClickListener(v -> triggerMLModelTraining());
+    }
+
+    void generateBehaviorVector() {
+        double avgHold = average(holdDurations);
+        double avgFlight = average(flightTimes);
+        double avgInterDelay = average(interKeyDelays);
+        double avgPressure = averageFloat(pressures);
+        double avgSize = averageFloat(sizes);
+        double avgTilt = averageFloat(accelValues);
+        double typingSpeed = calculateTypingSpeed();
+        long screenHoldTime = screenHoldEndTime - screenHoldStartTime;
+
+        String behaviorVector = String.format(
+                "Vector[TypingSpeed=%.2f, DwellTime=%.2f, FlightTime=%.2f, InterKeyDelay=%.2f, TapPressure=%.2f, TouchSize=%.2f, TiltAngle=%.2f, ScreenHoldTime=%d]",
+                typingSpeed, avgHold, avgFlight, avgInterDelay, avgPressure, avgSize, avgTilt, screenHoldTime
+        );
+
+        android.util.Log.d("BehaviorVector", "Generated: " + behaviorVector);
+    }
+
+    double average(ArrayList<Long> list) {
+        if (list.isEmpty()) return 0;
+        long sum = 0;
+        for (long val : list) sum += val;
+        return (double) sum / list.size();
+    }
+
+    double averageFloat(ArrayList<Float> list) {
+        if (list.isEmpty()) return 0;
+        float sum = 0;
+        for (float val : list) sum += val;
+        return sum / list.size();
+    }
+
+    double calculateTypingSpeed() {
+        long durationMillis = typingEndTime - typingStartTime;
+        if (durationMillis == 0) return 0;
+        String typed = inputField.getText().toString().trim();
+        return typed.length() / (durationMillis / 1000.0);
     }
 
     void updateScreen() {
         sentenceView.setText(trainingSentences[currentStep]);
         inputField.setText("");
         stepView.setText("Step " + (currentStep + 1) + " of " + trainingSentences.length);
-
         typingStartTime = System.currentTimeMillis();
         screenHoldStartTime = System.currentTimeMillis();
     }
@@ -210,7 +242,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
         }
 
         String url = "http://192.168.29.36:5000/upload-training-batch";
-
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, finalObject,
                 response -> Toast.makeText(this, "✅ Training data sent!", Toast.LENGTH_SHORT).show(),
                 error -> Toast.makeText(this, "❌ Error: " + error.toString(), Toast.LENGTH_SHORT).show());
@@ -219,7 +250,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
         queue.add(request);
     }
 
-    // ✅ Call Flask ML Training Route
     void triggerMLModelTraining() {
         String url = "http://192.168.29.36:5000/train-hybrid-model";
 
@@ -252,7 +282,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // not needed
     }
 
     @Override
