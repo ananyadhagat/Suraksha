@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Main content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 🔵 Top Bar -->
+            <LinearLayout
+                android:id="@+id/topBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#003366"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <!-- User Profile Circle -->
+                <ImageView
+                    android:id="@+id/profileIcon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_user"
+                    android:background="@drawable/circle_bg_white"
+                    android:padding="6dp"
+                    android:layout_marginEnd="16dp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <!-- Notification Icon -->
+                <ImageView
+                    android:id="@+id/notificationIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_notification"
+                    android:layout_gravity="center_vertical" />
+
+            <!-- 🚪 Logout Icon -->
+            <ImageView
+                android:id="@+id/logoutIcon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_logout"
+                android:layout_marginStart="16dp"
+                android:layout_gravity="center_vertical" />
+        </LinearLayout>
+
+            <!-- 🔖 Weekly Banner -->
+            <LinearLayout
+                android:id="@+id/bannerContainer"
+                android:layout_below="@id/topBar"
+                android:layout_margin="16dp"
+                android:background="@drawable/outlined_banner"
+                android:padding="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/bannerOffers"
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/banner" />
+            </LinearLayout>
+
+            <!-- Section Title: Pay and Transfer -->
+            <TextView
+                android:id="@+id/paySectionTitle"
+                android:layout_below="@id/bannerContainer"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pay And Transfer"
+                android:textColor="#000000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 🟦 Section: Pay & Transfer -->
+            <LinearLayout
+                android:id="@+id/sectionPay"
+                android:layout_below="@id/paySectionTitle"
+                android:layout_margin="16dp"
+                android:orientation="vertical"
+                android:background="@drawable/rounded_outline_darkblue"
+                android:padding="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <GridLayout
+                    android:id="@+id/payGrid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:alignmentMode="alignMargins"
+                    android:padding="4dp"
+                    android:rowCount="2"
+                    android:useDefaultMargins="true" />
+
+            </LinearLayout>
+
+            <!-- Section Title: UPI -->
+            <TextView
+                android:id="@+id/upiSectionTitle"
+                android:layout_below="@id/sectionPay"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UPI"
+                android:textColor="#000000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 🟦 Section: UPI -->
+            <LinearLayout
+                android:id="@+id/sectionUpi"
+                android:layout_below="@id/upiSectionTitle"
+                android:layout_margin="16dp"
+                android:orientation="vertical"
+                android:background="@drawable/rounded_outline_skyblue"
+                android:padding="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <GridLayout
+                    android:id="@+id/upiGrid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:alignmentMode="alignMargins"
+                    android:padding="4dp"
+                    android:rowCount="2"
+                    android:useDefaultMargins="true"/>
+
+            </LinearLayout>
+
+            <!-- Section Title: Loans -->
+            <TextView
+                android:id="@+id/privacySectionTitle"
+                android:layout_below="@id/sectionUpi"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Privacy Dashboard"
+                android:textColor="#000000"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 🟦 Section: Loans -->
+            <LinearLayout
+                android:id="@+id/sectionprivacy"
+                android:layout_below="@id/privacySectionTitle"
+                android:layout_margin="16dp"
+                android:orientation="vertical"
+                android:background="@drawable/rounded_outline_darkblue"
+                android:padding="12dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <GridLayout
+                    android:id="@+id/privacyGrid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:alignmentMode="alignMargins"
+                    android:padding="4dp"
+                    android:rowCount="2"
+                    android:useDefaultMargins="true"/>
+            </LinearLayout>
+        </RelativeLayout>
+    </ScrollView>
+
+    <!-- 📋 Navigation Drawer -->
+    <ListView
+        android:id="@+id/drawerList"
+        android:layout_width="240dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="#F9F9F9" />
+</androidx.drawerlayout.widget.DrawerLayout>

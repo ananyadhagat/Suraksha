@@ -4,28 +4,14 @@
         <selectionStates>
             <SelectionState runConfigName="app">
                 <option name="selectionMode" value="DROPDOWN" />
-                <DropdownSelection timestamp="2025-06-26T18:21:11.705551400Z">
+                <DropdownSelection timestamp="2025-06-22T11:37:14.099994500Z">
                     <Target type="DEFAULT_BOOT">
                         <handle>
-                            <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\LENOVO\.android\avd\Pixel_8.avd" />
+                            <DeviceId pluginId="PhysicalDevice" identifier="serial=ZA222P3G7Y" />
                         </handle>
                     </Target>
                 </DropdownSelection>
                 <DialogSelection />
-            </SelectionState>
-            <SelectionState runConfigName="TrainingSessionActivity">
-                <option name="selectionMode" value="DROPDOWN" />
-                <DropdownSelection timestamp="2025-07-01T08:52:34.046129100Z">
-                    <Target type="DEFAULT_BOOT">
-                        <handle>
-                            <DeviceId pluginId="PhysicalDevice" identifier="serial=QWUWYLUKPBMRXGR4" />
-                        </handle>
-                    </Target>
-                </DropdownSelection>
-                <DialogSelection />
-            </SelectionState>
-            <SelectionState runConfigName="TrainingSessionActivity (1)">
-                <option name="selectionMode" value="DROPDOWN" />
             </SelectionState>
         </selectionStates>
     </component>

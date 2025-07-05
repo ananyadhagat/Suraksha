@@ -5,16 +5,20 @@ plugins {
 }
 
 android {
-    namespace = "com.akanksha.cyber" // ✅ Your consistent namespace
+    namespace = "com.example.suraksha" // ✅ unified final namespace
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.akanksha.cyber"
+        applicationId = "com.example.suraksha"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     buildTypes {
@@ -38,7 +42,17 @@ android {
 
     buildFeatures {
         compose = true
-        viewBinding = true // ✅ useful for UI
+        viewBinding = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
@@ -58,8 +72,13 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // ✅ Volley for backend API calls
+    // ✅ Networking
     implementation("com.android.volley:volley:1.2.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // ✅ Biometrics
+    implementation("androidx.biometric:biometric:1.1.0")
 
     // ✅ Testing
     testImplementation(libs.junit)
