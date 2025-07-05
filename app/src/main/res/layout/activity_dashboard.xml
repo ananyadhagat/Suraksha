@@ -6,6 +6,11 @@
     android:gravity="center_horizontal"
     android:padding="16dp">
 
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
     <Button
         android:id="@+id/startMonitoringBtn"
         android:layout_width="wrap_content"
@@ -33,9 +38,10 @@
         android:layout_height="wrap_content"
         android:hint="Type here..."
         android:inputType="text"
-        android:layout_margin="16dp"/>
+        android:layout_margin="16dp"
+        android:gravity="top"
+        android:minHeight="120dp" />
 
-    <!-- Scrollable area -->
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
@@ -47,7 +53,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Dummy text for scrolling -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -56,4 +61,8 @@
         </LinearLayout>
     </ScrollView>
 
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 </LinearLayout>
