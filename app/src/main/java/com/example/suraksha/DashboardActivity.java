@@ -21,7 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-//need to be integrated with the homescreen
+//need to be integrated with the homescreen later
 public class DashboardActivity extends AppCompatActivity implements SensorEventListener {
 
     private TextView statusText;
