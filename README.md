@@ -25,6 +25,7 @@ This project implements the basic onboarding flow with two activities: `SplashAc
    ```bash
    git clone (https://github.com/ananyadhagat/surakshak-Hackorbit.git)
 2. Run the backend by navigating to the surakshak-backend folder
+  ```bash
    cd surakshak-backend
    node server.js
 
