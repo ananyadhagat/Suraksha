@@ -7,7 +7,7 @@ import datetime
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-# ✅ MongoDB Connection 
+#  MongoDB Connection 
 client = MongoClient("mongodb+srv://ananya2004d:1anan.ya9@surakshak.aait0ep.mongodb.net/?retryWrites=true&w=majority&appName=Surakshak")
 db = client['surakshak_db']
 training_collection = db['training_sessions']
