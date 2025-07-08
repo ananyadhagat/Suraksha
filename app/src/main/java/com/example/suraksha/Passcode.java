@@ -22,8 +22,8 @@ public class Passcode extends AppCompatActivity {
     String mobile,name, passcode = "";
     final int BOX_COUNT = 6;
     // URLs
-    String otpUrl = "http://192.168.1.30:5000/api/otp";
-    String userUrl = "http://192.168.1.30:5000/api/user";
+    String otpUrl = "http://192.168.1.4:5000/api/otp";
+    String userUrl = "http://192.168.1.4:5000/api/user";
     boolean otpSent = false;
 
     @Override
@@ -147,15 +147,10 @@ public class Passcode extends AppCompatActivity {
                                 .putBoolean("isLoggedIn", true)
                                 .putString("mobile", mobile)
                                 .apply();
-                        new AlertDialog.Builder(Passcode.this)
-                                .setTitle("Let’s Train Your Digital Bodyguard!")
-                                .setMessage("Your app is learning how you swipe, type, and move —\nso it can spot intruders even after login.\n\n1) Tracks: Swipe speed | Typing style | Phone motion\n2) Data stays only on your phone\n3) No messages, passwords, or personal files are touched\n\nJust use the app like normal — protection starts now!")
-                                .setCancelable(false)
-                                .setPositiveButton("OK", (dialog, which) -> {
-                        startActivity(new Intent(Passcode.this, Homescreen.class));
+                        Intent intent = new Intent(Passcode.this, ChoosePanic.class);
+                        intent.putExtra("mobile", mobile);
+                        startActivity(intent);
                         finish();
-                        })
-                                .show();
                     },
                     error -> {
                         String errorMsg = error.networkResponse != null && error.networkResponse.data != null

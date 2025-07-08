@@ -52,5 +52,34 @@
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
 
+        <activity android:name=".TrackBehaviorActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <activity
+            android:name=".Customize"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <activity
+            android:name=".ChangePasscode"
+            android:exported="true"
+            android:theme="@style/Theme.TransparentDialog" />
+        <activity
+            android:name=".TPINActivity"
+            android:exported="true"
+            android:theme="@style/Theme.TransparentDialog" />
+        <activity
+            android:name=".ChoosePanic"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha"/>
+        <activity
+            android:name=".FakeHomescreen"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha"/>
+        <activity
+            android:name=".SendMoney"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
     </application>
 </manifest>

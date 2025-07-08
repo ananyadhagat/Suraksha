@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
     passcode: {
         type: String,
         required: true
+    },
+    tpin: {
+        type: String, // encrypted using SHA-256 from Android
+        required: false
     }
 });
 

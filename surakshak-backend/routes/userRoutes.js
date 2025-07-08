@@ -54,7 +54,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid passcode' });
         }
 
-        res.json({ message: 'Login successful' });
+        res.json({ message: 'Login successful' , userId: user._id });
     } catch (err) {
         console.error('Login Error:', err);
         res.status(500).json({ message: 'Internal server error' });
@@ -111,5 +111,54 @@ router.post('/reset-check', async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 });
+// ✅ Set or Update TPIN (hashes on backend now)
+router.post('/set_tpin', async (req, res) => {
+    const { mobile, tpin } = req.body;
+
+    if (!mobile || !tpin) {
+        return res.status(400).json({ message: 'Mobile number and TPIN are required' });
+    }
+
+    try {
+        const user = await User.findOne({ mobile });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const hashedTPIN = await bcrypt.hash(tpin, SALT_ROUNDS);
+        user.tpin = hashedTPIN;
+        await user.save();
+
+        return res.json({ message: 'TPIN set successfully' });
+    } catch (err) {
+        console.error('Set TPIN Error:', err);
+        res.status(500).json({ message: 'Server error while setting TPIN' });
+    }
+});
+
+// ✅ Verify TPIN (now works with bcrypt.compare)
+router.post('/verify-tpin', async (req, res) => {
+    const { mobile, tpin } = req.body;
+
+    if (!mobile || !tpin) {
+        return res.status(400).json({ message: 'Mobile and TPIN required' });
+    }
+
+    try {
+        const user = await User.findOne({ mobile });
+        if (!user || !user.tpin) return res.status(404).json({ message: 'TPIN not set' });
+
+        const match = await bcrypt.compare(tpin, user.tpin);
+        if (!match) return res.status(401).json({ message: 'Invalid TPIN' });
+
+        return res.status(200).json({ message: 'TPIN Verified' });
+    } catch (err) {
+        console.error('TPIN Verify Error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 
 module.exports = router;
+

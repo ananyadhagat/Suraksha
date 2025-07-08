@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.widget.Toast;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -48,5 +49,14 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
         appName = findViewById(R.id.appName);
         handler.postDelayed(typeRunnable, delay);
+
+        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        long lockUntil = prefs.getLong("panicLockTimestamp", 0);
+
+        if (System.currentTimeMillis() < lockUntil) {
+            Toast.makeText(this, "App temporarily locked", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
     }
 }

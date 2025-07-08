@@ -2,8 +2,6 @@ package com.example.suraksha;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.app.AlertDialog;
-import android.os.Handler;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -62,20 +60,9 @@ public class Login extends AppCompatActivity {
         createBoxes(passcodeLayout, BOX_COUNT);
 
         btnLogin.setOnClickListener(v -> {
-            String enteredPass = getBoxValue(passcodeBoxes);
-
-            if (enteredPass.length() == BOX_COUNT) {
-                SharedPreferences sp = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
-                int selectedGesture = sp.getInt("selectedGesture", 0); // 1 or 2
-
-                if (selectedGesture == 1 && PanicGesture1.isLoginPanicPin(enteredPass, mobile)) {
-                    goToFakeHomeWithServerDownDialog();
-                } else if (selectedGesture == 2 && PanicGesture2.isLoginPanicPin(enteredPass, mobile)) {
-                    goToFakeHomeWithServerDownDialog();
-                } else {
-                    verifyPasscode(mobile, enteredPass);
-                }
-
+            String enteredPasscode = getBoxValue(passcodeBoxes);
+            if (enteredPasscode.length() == BOX_COUNT) {
+                verifyPasscode(mobile, enteredPasscode);
             } else {
                 Toast.makeText(this, "Enter 6-digit passcode", Toast.LENGTH_SHORT).show();
             }
@@ -170,20 +157,6 @@ public class Login extends AppCompatActivity {
         finish();
     }
 
-    private void goToFakeHomeWithServerDownDialog() {
-        PanicUtils.triggerPanicLock(this);
-        Intent i = new Intent(Login.this, FakeHomescreen.class);
-        new Handler().postDelayed(() -> showServerDownDialog(), 1000);
-
-    }
-    private void showServerDownDialog() {
-        new AlertDialog.Builder(Login.this)
-                .setTitle("Banking Server Down")
-                .setMessage("Please try again later.")
-                .setCancelable(false)
-                .setPositiveButton("OK", (dialog, which) -> finishAffinity())
-                .show();
-    }
     private void createBoxes(LinearLayout layout, int count) {
         layout.removeAllViews();
         passcodeBoxes = new EditText[count];
@@ -260,7 +233,6 @@ public class Login extends AppCompatActivity {
         boxes[0].requestFocus();
         return boxes;
     }
-
     private void sendOtpForReset(String mobile) {
         try {
             JSONObject params = new JSONObject().put("mobile", mobile);
@@ -296,8 +268,10 @@ public class Login extends AppCompatActivity {
         step2Layout.setVisibility(View.GONE);
 
         btnProceed.setOnClickListener(v -> {
+            // Hide Step 1, show Step 2
             step1Layout.setVisibility(View.GONE);
             step2Layout.setVisibility(View.VISIBLE);
+
             sendOtpForReset(mobile);
         });
 
@@ -313,6 +287,7 @@ public class Login extends AppCompatActivity {
         dialog.show();
     }
 
+    // New method to verify OTP and open passcode reset dialog separately
     private void verifyOtpAndOpenPasscodeDialog(String otp, Dialog parentDialog) {
         try {
             JSONObject p = new JSONObject().put("mobile", mobile).put("otp", otp);
@@ -335,7 +310,6 @@ public class Login extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
     private void updatePasscodeOnServer(String newPass, Dialog dialog) {
         try {
             JSONObject params = new JSONObject()
@@ -359,6 +333,7 @@ public class Login extends AppCompatActivity {
         }
     }
 
+    // New dialog for passcode reset
     private void showPasscodeResetDialog() {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_reset_passcode);
@@ -389,5 +364,333 @@ public class Login extends AppCompatActivity {
         });
 
         dialog.show();
+    }
+
+}
+
+Homescreen.java : 
+package com.example.suraksha;
+
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.*;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
+public class Homescreen extends AppCompatActivity {
+
+    GridLayout payGrid, upiGrid, privacyGrid;
+    DrawerLayout drawerLayout;
+    TextView userInitials, fullName, phoneNumber;
+    String userUrl = "http://192.168.1.4:5000/api/user";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_homescreen);
+
+        payGrid = findViewById(R.id.payGrid);
+        upiGrid = findViewById(R.id.upiGrid);
+        privacyGrid = findViewById(R.id.privacyGrid);
+        drawerLayout = findViewById(R.id.drawerLayout);
+
+        userInitials = findViewById(R.id.userInitials);
+        fullName = findViewById(R.id.fullName);
+        phoneNumber = findViewById(R.id.phoneNumber);
+
+        fetchUserDataFromDatabase();
+
+        ImageView profileIcon = findViewById(R.id.profileIcon);
+        profileIcon.setOnClickListener(v -> drawerLayout.openDrawer(Gravity.LEFT));
+
+        ImageView logoutIcon = findViewById(R.id.logoutIcon);
+        logoutIcon.setOnClickListener(v -> showLogoutDialog());
+
+        addIconToGrid(payGrid, R.drawable.ic_send, "Send Money");
+        addIconToGrid(payGrid, R.drawable.ic_bill, "Bill Payment");
+        addIconToGrid(payGrid, R.drawable.ic_card, "Card-less Pay");
+        addIconToGrid(payGrid, R.drawable.ic_beneficiary, "My Beneficiary");
+        addIconToGrid(payGrid, R.drawable.ic_passbook, "ePassbook");
+        addIconToGrid(payGrid, R.drawable.ic_balance, "Account Balance");
+
+        addIconToGrid(upiGrid, R.drawable.upi, "Send to UPI ID");
+        addIconToGrid(upiGrid, R.drawable.ic_qr, "Scan QR");
+        addIconToGrid(upiGrid, R.drawable.ic_contact, "Pay to Mobile Number");
+        addIconToGrid(upiGrid, R.drawable.ic_tap, "Tap & Pay");
+        addIconToGrid(upiGrid, R.drawable.ic_receive, "Receive Money");
+        addIconToGrid(upiGrid, R.drawable.ic_download, "Download UPI Statement");
+
+        addIconToGrid(privacyGrid, R.drawable.ic_track, "Track Your Behaviour");
+        addIconToGrid(privacyGrid, R.drawable.ic_custom, "Customize Risk Behaviour");
+        addIconToGrid(privacyGrid, R.drawable.ic_passcode, "Change Passcode");
+        addIconToGrid(privacyGrid, R.drawable.ic_tpin, "Set TPIN");
+        addIconToGrid(privacyGrid, R.drawable.ic_location, "Enable Location");
+        addIconToGrid(privacyGrid, R.drawable.ic_help, "Help & Support");
+    }
+
+    private void fetchUserDataFromDatabase() {
+        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        String mobile = prefs.getString("mobile", null);
+        if (mobile == null) return;
+
+        try {
+            JSONObject params = new JSONObject().put("mobile", mobile);
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    userUrl + "/getName",
+                    params,
+                    response -> {
+                        String name = response.optString("name", "User");
+                        if (name.equals("") || name.equals("null")) name = "User";
+
+                        fullName.setText(name);
+                        phoneNumber.setText(mobile);
+                        userInitials.setText(getInitials(name));
+                    },
+                    error -> {
+                        fullName.setText("User");
+                        phoneNumber.setText(mobile);
+                        userInitials.setText("U");
+                    }
+            );
+
+            Volley.newRequestQueue(this).add(request);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            fullName.setText("User");
+            phoneNumber.setText(mobile);
+            userInitials.setText("U");
+        }
+    }
+
+    private String getInitials(String name) {
+        String[] parts = name.trim().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+        for (String part : parts) {
+            if (!part.isEmpty()) {
+                initials.append(part.toUpperCase().charAt(0));
+            }
+        }
+        return initials.toString();
+    }
+    private void addIconToGrid(GridLayout grid, int iconRes, String label) {
+        LinearLayout itemLayout = new LinearLayout(this);
+        itemLayout.setOrientation(LinearLayout.VERTICAL);
+        itemLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+        itemLayout.setPadding(8, 16, 8, 16);
+
+        ImageView iconView = new ImageView(this);
+        iconView.setImageResource(iconRes);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(80, 80);
+        iconView.setLayoutParams(iconParams);
+
+        TextView textView = new TextView(this);
+        textView.setText(label);
+        textView.setTextColor(Color.BLACK);
+        textView.setTextSize(14);
+        textView.setGravity(Gravity.CENTER);
+        textView.setPadding(0, 8, 0, 0);
+        textView.setMaxLines(2);
+
+        itemLayout.addView(iconView);
+        itemLayout.addView(textView);
+
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.setMargins(12, 12, 12, 12);
+        params.width = 0;
+        params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+        itemLayout.setLayoutParams(params);
+
+        // ✅ Set click action here
+        itemLayout.setOnClickListener(v -> {
+            if (label.equals("Track Your Behaviour")) {
+                startActivity(new Intent(Homescreen.this, TrackBehaviorActivity.class));
+            }
+                if (label.equals("Customize Risk Behaviour")) {
+                    startActivity(new Intent(Homescreen.this, Customize.class));
+                }
+            if (label.equals("Change Passcode")) {
+                startActivity(new Intent(Homescreen.this, ChangePasscode.class));
+            }
+            if (label.equals("Send Money")) {
+                startActivity(new Intent(Homescreen.this, SendMoney.class));
+            }
+            if (label.equals("Set TPIN")) {
+                startActivity(new Intent(Homescreen.this, TPINActivity.class));
+            }
+            // Add more if-conditions here for other privacy features like:
+            // "Opt-out from Tracking", "Change Passcode", etc.
+        });
+
+        grid.addView(itemLayout);
+    }
+
+
+    private void showLogoutDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialog);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View dialogView = inflater.inflate(R.layout.dialog_logout_confirm, null);
+        builder.setView(dialogView);
+
+        Button btnYes = dialogView.findViewById(R.id.btnYes);
+        Button btnNo = dialogView.findViewById(R.id.btnNo);
+
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false);
+
+        btnNo.setOnClickListener(v -> dialog.dismiss());
+
+        btnYes.setOnClickListener(v -> {
+            SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+            prefs.edit().clear().apply();
+            dialog.dismiss();
+            finishAffinity();
+        });
+
+        dialog.show();
+    }
+}
+ send money : 
+ package com.example.suraksha;
+
+import android.app.AlertDialog;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.*;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
+public class SendMoney extends AppCompatActivity {
+
+    private EditText editTextAC, editTextIFSC, editTextRecipient, editTextAmount, editTextMessage, editTextPIN;
+    private Button btnSend;
+    private String mobile;
+    private final String tpinVerifyUrl = "http://192.168.1.4:5000/api/user/verify-tpin";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.send_money);
+
+        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        mobile = prefs.getString("mobile", null);
+
+        editTextAC = findViewById(R.id.editTextAC);
+        editTextRecipient = findViewById(R.id.editTextRecipient);
+        editTextIFSC = findViewById(R.id.editTextIFSC);
+        editTextAmount = findViewById(R.id.editTextAmount);
+        editTextMessage = findViewById(R.id.editTextMessage);
+        editTextPIN = findViewById(R.id.editTextPIN);
+        btnSend = findViewById(R.id.btnSendMoney);
+
+        btnSend.setOnClickListener(v -> {
+            String accnumber = editTextAC.getText().toString().trim();
+            String recipient = editTextRecipient.getText().toString().trim();
+            String ifsc = editTextIFSC.getText().toString().trim();
+            String amount = editTextAmount.getText().toString().trim();
+            String message = editTextMessage.getText().toString().trim();
+            String tpin = editTextPIN.getText().toString().trim();
+
+            if (TextUtils.isEmpty(recipient) || TextUtils.isEmpty(amount) || TextUtils.isEmpty(tpin)) {
+                Toast.makeText(this, "All fields including TPIN are required", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            verifyTPIN(tpin, amount, recipient);
+        });
+    }
+
+    private void verifyTPIN(String tpin, String amount, String recipient) {
+        try {
+            JSONObject params = new JSONObject();
+            params.put("mobile", mobile);
+            params.put("tpin", tpin);
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    tpinVerifyUrl,
+                    params,
+                    response -> showSuccessDialog(amount, recipient),
+                    error -> showFailureDialog()
+            );
+
+            Volley.newRequestQueue(this).add(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showSuccessDialog(String amount, String recipient) {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_transaction_status, null);
+        ImageView icon = view.findViewById(R.id.statusIcon);
+        TextView statusText = view.findViewById(R.id.statusText);
+        TextView desc = view.findViewById(R.id.statusDescription);
+
+        icon.setImageResource(R.drawable.ic_tick_green);
+        statusText.setText("Transaction Successful");
+        statusText.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        desc.setText("₹" + amount + " sent to " + recipient);
+
+        new AlertDialog.Builder(this)
+                .setView(view)
+                .setCancelable(true)
+                .show();
+
+        clearFields();
+    }
+
+    private void showFailureDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_transaction_status, null);
+        ImageView icon = view.findViewById(R.id.statusIcon);
+        TextView statusText = view.findViewById(R.id.statusText);
+        TextView desc = view.findViewById(R.id.statusDescription);
+
+        icon.setImageResource(R.drawable.ic_cross_red);
+        statusText.setText("Transaction Failed");
+        statusText.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        desc.setText("Incorrect TPIN. Please try again.");
+
+        new AlertDialog.Builder(this)
+                .setView(view)
+                .setCancelable(true)
+                .show();
+    }
+
+    private void clearFields() {
+        editTextAC.setText("");
+        editTextRecipient.setText("");
+        editTextIFSC.setText("");
+        editTextAmount.setText("");
+        editTextMessage.setText("");
+        editTextPIN.setText("");
+    }
+
+    public void onBackClick(View view) {
+        onBackPressed();
     }
 }
