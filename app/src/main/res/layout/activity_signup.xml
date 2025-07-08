@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Top wave -->
+    <ImageView
+        android:id="@+id/topWave"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/top_arc"
+        android:layout_alignParentTop="true" />
+
+    <!-- Bottom wave -->
+    <ImageView
+        android:id="@+id/bottomWave"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_alignParentBottom="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/bottomarc" />
+
+    <!-- Central Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="100dp"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/headingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sign Up"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/subText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enter your mobile number"
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="4dp"
+                android:textAlignment="viewStart" />  <!-- Align left -->
+
+            <EditText
+                android:id="@+id/editTextPhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Phone Number"
+                android:inputType="phone"
+                android:maxLength="10"
+                android:textAlignment="viewStart"
+                android:background="@drawable/box_background"
+                android:padding="12dp"
+                android:textColor="#000000"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Bank Name subtitle -->
+            <TextView
+                android:id="@+id/nameSubText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Confirm your bank name"
+                android:textSize="16sp"
+                android:textColor="#555"
+                android:layout_marginBottom="4dp"
+                android:textAlignment="viewStart" />  <!-- Align left -->
+
+            <!-- Confirm bank name placeholder -->
+
+            <EditText
+                android:id="@+id/inputName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/box_background"
+                android:hint="Bank Account Name"
+                android:inputType="textPersonName"
+                android:textColor="#000000"
+                android:padding="12dp" />
+
+            <LinearLayout
+                android:id="@+id/otpBoxLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:visibility="gone"
+                android:layout_marginBottom="4dp" /> <!-- Keep small margin bottom -->
+
+            <TextView
+                android:id="@+id/tvOtpMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#0D47A1"
+                android:visibility="gone"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:textAlignment="center"/>  <!-- OTP message below OTP boxes -->
+
+            <Button
+                android:id="@+id/btnSendOtp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Send OTP"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/rounded_button"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btnVerifyOtp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Verify OTP"
+                android:visibility="gone"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/rounded_button"
+                android:layout_marginBottom="20dp" />
+
+            <TextView
+                android:id="@+id/noteBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="30dp"
+                android:background="@drawable/note"
+                android:padding="16dp"
+                android:text="Note:\n\n1) Please enter registered mobile number linked with your bank account. Regular carrier charges apply.\n\n2) In a day, only three attempts will be provided to recover your account or passcode via OTP authentication."
+                android:textSize="14sp"
+                android:textColor="#1B1B1B"
+                android:lineSpacingExtra="4dp" />
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

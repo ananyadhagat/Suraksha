@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.suraksha">
+
+    <!-- ✅ Required permission for API communication -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Suraksha"
+        tools:targetApi="31"
+        android:usesCleartextTraffic="true">
+
+        <!-- ✅ SPLASH SCREEN (Launcher) -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ✅ LOGIN SCREEN -->
+        <activity
+            android:name=".Login"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <!-- ✅ SIGNUP SCREEN -->
+        <activity
+            android:name=".SignUp"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <!-- ✅ Passcode SCREEN -->
+        <activity android:name=".Passcode"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <!-- ✅ HOMESCREEN (New Activity Added) -->
+        <activity
+            android:name=".Homescreen"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <activity android:name=".TrackBehaviorActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <activity
+            android:name=".Customize"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
+        <activity
+            android:name=".ChangePasscode"
+            android:exported="true"
+            android:theme="@style/Theme.TransparentDialog" />
+        <activity
+            android:name=".TPINActivity"
+            android:exported="true"
+            android:theme="@style/Theme.TransparentDialog" />
+        <activity
+            android:name=".ChoosePanic"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha"/>
+        <activity
+            android:name=".FakeHomescreen"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha"/>
+        <activity
+            android:name=".SendMoney"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+    </application>
+</manifest>
