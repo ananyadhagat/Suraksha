@@ -1,4 +1,4 @@
-// 🌟 Suraksha App: Unified Gradle Build File
+// 🌟 Suraksha App: Unified Gradle Build File.
 // Supports Jetpack Compose, ViewBinding, Biometric Auth, Retrofit, Volley & more.
 
 plugins {
