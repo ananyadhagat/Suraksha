@@ -6,3 +6,4 @@ xgboost
 scikit-learn
 numpy
 pandas
+pip install flask flask-cors pymongo numpy pandas scikit-learn xgboost keras pycryptodome
