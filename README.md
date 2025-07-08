@@ -93,7 +93,7 @@ After configuration, the user is directed to the home screen.
 
 ## Upcoming Features
 
-- Behavioral Pattern Recognition — integration of advanced ML models to improve accuracy
+- Risk Score Calculation — integration of advanced ML models to improve accuracy
 - Enhanced Reauthentication — silent reauthentication triggered by behavior anomalies
 - Fake Transaction Handling — deeper decoy functionality for additional panic actions
 - Analytics Dashboard — user view of behavior metrics and security activity
