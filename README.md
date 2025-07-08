@@ -10,12 +10,12 @@
 
 ### 1. Signup Screen
 - Users register by entering their basic credentials (Phone number and name ).
--   After taht otp is sent to user's system and then verification of otp is processed and if it succeeds then user is directed to set passcode otherwise if otp is wrong then user has to again signup.
+-   After that otp is sent to user's system and then verification of otp is processed and if it succeeds then user is directed to set passcode otherwise if otp is wrong then user has to again signup.
 
 ### 2. Set Passcode
 - A secure 6-digit passcode is set by the user.
 - Passcode is stored securely in mongodb database after verification of otp again sent to mobile number of user to ensure that user has set the passcode.
-- passcode will be stored in database in encrypted form to ensure security of user.
+- Passcode will be stored in database in encrypted form to ensure security of user.
 
 ### 3. Choose Panic Gesture
 - User is prompted to **set a panic gesture** dialog box
