@@ -1,6 +1,7 @@
-package com.example.surakshak2;
+package com.example.suraksha;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -41,7 +42,7 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
 
     TextView sentenceView, stepView;
     EditText inputField;
-    Button nextBtn, trainModelButton;
+    Button nextBtn;
 
     long lastKeyDownTime = 0;
     long lastKeyUpTime = 0;
@@ -72,7 +73,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
         inputField = findViewById(R.id.user_input);
         nextBtn = findViewById(R.id.next_button);
         stepView = findViewById(R.id.session_progress);
-        trainModelButton = findViewById(R.id.train_model_button);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -148,7 +148,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
                 session.put("screen_hold_time", screenHoldTime);
 
                 trainingDataList.add(session);
-                generateBehaviorVector();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -162,47 +161,6 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
                 sendTrainingDataToBackend();
             }
         });
-
-        trainModelButton.setOnClickListener(v -> triggerMLModelTraining());
-    }
-
-    void generateBehaviorVector() {
-        double avgHold = average(holdDurations);
-        double avgFlight = average(flightTimes);
-        double avgInterDelay = average(interKeyDelays);
-        double avgPressure = averageFloat(pressures);
-        double avgSize = averageFloat(sizes);
-        double avgTilt = averageFloat(accelValues);
-        double typingSpeed = calculateTypingSpeed();
-        long screenHoldTime = screenHoldEndTime - screenHoldStartTime;
-
-        String behaviorVector = String.format(
-                "Vector[TypingSpeed=%.2f, DwellTime=%.2f, FlightTime=%.2f, InterKeyDelay=%.2f, TapPressure=%.2f, TouchSize=%.2f, TiltAngle=%.2f, ScreenHoldTime=%d]",
-                typingSpeed, avgHold, avgFlight, avgInterDelay, avgPressure, avgSize, avgTilt, screenHoldTime
-        );
-
-        android.util.Log.d("BehaviorVector", "Generated: " + behaviorVector);
-    }
-
-    double average(ArrayList<Long> list) {
-        if (list.isEmpty()) return 0;
-        long sum = 0;
-        for (long val : list) sum += val;
-        return (double) sum / list.size();
-    }
-
-    double averageFloat(ArrayList<Float> list) {
-        if (list.isEmpty()) return 0;
-        float sum = 0;
-        for (float val : list) sum += val;
-        return sum / list.size();
-    }
-
-    double calculateTypingSpeed() {
-        long durationMillis = typingEndTime - typingStartTime;
-        if (durationMillis == 0) return 0;
-        String typed = inputField.getText().toString().trim();
-        return typed.length() / (durationMillis / 1000.0);
     }
 
     void updateScreen() {
@@ -241,21 +199,30 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
             e.printStackTrace();
         }
 
-        String url = "http://192.168.29.36:5000/upload-training-batch";
+        String url = "http://172.16.19.12:5000/upload-training-batch";
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, finalObject,
-                response -> Toast.makeText(this, "✅ Training data sent!", Toast.LENGTH_SHORT).show(),
-                error -> Toast.makeText(this, "❌ Error: " + error.toString(), Toast.LENGTH_SHORT).show());
+                response -> {
+                    Toast.makeText(this, "✅ Training data sent!", Toast.LENGTH_SHORT).show();
+                    triggerMLModelTraining();
+                },
+                error -> Toast.makeText(this, "❌ Error: " + error.toString(), Toast.LENGTH_SHORT).show()
+        );
 
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
     }
 
     void triggerMLModelTraining() {
-        String url = "http://192.168.29.36:5000/train-hybrid-model";
+        String url = "http://172.16.19.12:5000/train-hybrid-model";
 
         StringRequest request = new StringRequest(Request.Method.POST, url,
-                response -> Toast.makeText(this, "✅ ML Training Done!", Toast.LENGTH_LONG).show(),
-                error -> Toast.makeText(this, "❌ ML Error: " + error.toString(), Toast.LENGTH_LONG).show());
+                response -> {
+                    Toast.makeText(this, "✅ ML Model Trained!", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(TrainingSessionActivity.this, Homescreen.class));
+                    finish();
+                },
+                error -> Toast.makeText(this, "❌ ML Error: " + error.toString(), Toast.LENGTH_SHORT).show()
+        );
 
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
@@ -281,8 +248,7 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
     @Override
     protected void onDestroy() {

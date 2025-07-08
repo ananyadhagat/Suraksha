@@ -19,11 +19,13 @@ public class Passcode extends AppCompatActivity {
     Button btnProceed;
     EditText[] passcodeBoxes, otpBoxes;
     TextView subText, tvOtpInstruction;
-    String mobile,name, passcode = "";
+    String mobile, name, passcode = "";
     final int BOX_COUNT = 6;
-    // URLs
-    String otpUrl = "http://192.168.1.30:5000/api/otp";
-    String userUrl = "http://192.168.1.30:5000/api/user";
+
+    // ✅ Updated backend URLs to port 5001
+    String otpUrl = "http://172.16.19.12:5001/api/otp";
+    String userUrl = "http://172.16.19.12:5001/api/user";
+
     boolean otpSent = false;
 
     @Override
@@ -53,7 +55,6 @@ public class Passcode extends AppCompatActivity {
                 if (passcode.length() == BOX_COUNT) {
                     sendOtpAgain(mobile);
 
-                    // Update UI on first OTP send
                     otpLayout.setVisibility(View.VISIBLE);
                     if (otpBoxes == null || otpBoxes.length == 0) {
                         createBoxes(otpLayout, BOX_COUNT, false);
@@ -114,8 +115,8 @@ public class Passcode extends AppCompatActivity {
                     params,
                     response -> {
                         Toast.makeText(this, "✅ OTP Verified!", Toast.LENGTH_SHORT).show();
-                        passcode = getBoxValue(passcodeBoxes); // Ensure correct passcode is sent
-                        savePasscodeToDB(mobile, passcode,name );
+                        passcode = getBoxValue(passcodeBoxes);
+                        savePasscodeToDB(mobile, passcode, name);
                     },
                     error -> {
                         Toast.makeText(this, "OTP verification failed", Toast.LENGTH_SHORT).show();
@@ -129,12 +130,13 @@ public class Passcode extends AppCompatActivity {
         }
     }
 
-    private void savePasscodeToDB(String mobile, String passcode,String name) {
+    private void savePasscodeToDB(String mobile, String passcode, String name) {
         try {
             JSONObject params = new JSONObject();
             params.put("mobile", mobile);
             params.put("passcode", passcode);
             params.put("name", name);
+
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
                     userUrl + "/register",
@@ -147,14 +149,15 @@ public class Passcode extends AppCompatActivity {
                                 .putBoolean("isLoggedIn", true)
                                 .putString("mobile", mobile)
                                 .apply();
+
                         new AlertDialog.Builder(Passcode.this)
                                 .setTitle("Let’s Train Your Digital Bodyguard!")
                                 .setMessage("Your app is learning how you swipe, type, and move —\nso it can spot intruders even after login.\n\n1) Tracks: Swipe speed | Typing style | Phone motion\n2) Data stays only on your phone\n3) No messages, passwords, or personal files are touched\n\nJust use the app like normal — protection starts now!")
                                 .setCancelable(false)
                                 .setPositiveButton("OK", (dialog, which) -> {
-                        startActivity(new Intent(Passcode.this, Homescreen.class));
-                        finish();
-                        })
+                                    startActivity(new Intent(Passcode.this, TrainingSessionActivity.class));
+                                    finish();
+                                })
                                 .show();
                     },
                     error -> {
@@ -173,7 +176,6 @@ public class Passcode extends AppCompatActivity {
     }
 
     private void createBoxes(LinearLayout layout, int count, boolean isPasscode) {
-        // Prevent duplicate creation
         if (isPasscode && passcodeBoxes != null && passcodeBoxes.length == count) return;
         if (!isPasscode && otpBoxes != null && otpBoxes.length == count) return;
 

@@ -1,4 +1,4 @@
-package com.akanksha.cyber;
+package com.example.suraksha;
 
 public class BehaviorVector {
     public double typingSpeed;

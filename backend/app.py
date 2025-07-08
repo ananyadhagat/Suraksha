@@ -132,5 +132,35 @@ def train_hybrid_model():
         print("❌ Error during training:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Real-time Risk Evaluation
+@app.route('/evaluate-risk', methods=['POST'])
+def evaluate_risk():
+    try:
+        vector = request.get_json(force=True)
+        if not vector:
+            return jsonify({"status": "error", "message": "Empty or invalid JSON"}), 400
+
+        print("\n📨 Received behavior vector for evaluation:", vector)
+
+        user_id = vector.get("userID", "user_01")
+
+        user_record = risk_collection.find_one({"userID": user_id})
+        if not user_record or "average_vector" not in user_record:
+            return jsonify({"status": "error", "message": "No baseline vector found"}), 404
+
+        baseline = user_record["average_vector"]
+        vector_clean = {k: v for k, v in vector.items() if k != "userID"}
+
+        risk_score = calculate_risk_score(vector_clean, baseline)
+
+        print(f"🔍 Real-time risk score for {user_id}: {risk_score}")
+        return jsonify({"status": "success", "risk_score": risk_score}), 200
+
+    except Exception as e:
+        print("❌ Error in evaluate-risk:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# Run Flask Server
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

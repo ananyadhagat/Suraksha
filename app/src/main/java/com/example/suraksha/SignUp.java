@@ -20,7 +20,7 @@ public class SignUp extends AppCompatActivity {
     EditText editTextPhone, inputName;
     Button btnSendOtp, btnVerifyOtp;
     EditText[] otpBoxes;
-    String backendUrl = "http://192.168.1.30:5000/api/otp";
+    String backendUrl = "http://172.16.19.12:5001/api/otp";
     final int OTP_BOX_COUNT = 6;
 
     @Override

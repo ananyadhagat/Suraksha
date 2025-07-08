@@ -33,7 +33,7 @@ public class Login extends AppCompatActivity {
 
     final int BOX_COUNT = 6;
     String mobile;
-    String userUrl = "http://192.168.1.30:5000/api/user";
+    String userUrl = "http://172.16.19.12:5000/api/user";
     int resetAttempts = 0;
     final int MAX_RESETS = 3;
 

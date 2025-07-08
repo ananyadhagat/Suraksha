@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <!-- Main content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -24,7 +23,6 @@
                 android:padding="16dp"
                 android:gravity="center_vertical">
 
-                <!-- User Profile Circle -->
                 <ImageView
                     android:id="@+id/profileIcon"
                     android:layout_width="40dp"
@@ -39,7 +37,6 @@
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
-                <!-- Notification Icon -->
                 <ImageView
                     android:id="@+id/notificationIcon"
                     android:layout_width="28dp"
@@ -47,20 +44,59 @@
                     android:src="@drawable/ic_notification"
                     android:layout_gravity="center_vertical" />
 
-            <!-- 🚪 Logout Icon -->
-            <ImageView
-                android:id="@+id/logoutIcon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_logout"
-                android:layout_marginStart="16dp"
-                android:layout_gravity="center_vertical" />
-        </LinearLayout>
+                <ImageView
+                    android:id="@+id/logoutIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_logout"
+                    android:layout_marginStart="16dp"
+                    android:layout_gravity="center_vertical" />
+            </LinearLayout>
+
+            <!-- 🧠 Behavior Monitoring Section -->
+            <LinearLayout
+                android:id="@+id/behaviorMonitorSection"
+                android:layout_below="@id/topBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Monitoring not started"
+                    android:textSize="16sp"
+                    android:textColor="#000000" />
+
+                <EditText
+                    android:id="@+id/typingField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Type something..."
+                    android:inputType="text"
+                    android:layout_marginTop="8dp" />
+
+                <Button
+                    android:id="@+id/startMonitoringBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Start Monitoring"
+                    android:layout_marginTop="8dp" />
+
+                <Button
+                    android:id="@+id/stopMonitoringBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Stop Monitoring"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
 
             <!-- 🔖 Weekly Banner -->
             <LinearLayout
                 android:id="@+id/bannerContainer"
-                android:layout_below="@id/topBar"
+                android:layout_below="@id/behaviorMonitorSection"
                 android:layout_margin="16dp"
                 android:background="@drawable/outlined_banner"
                 android:padding="4dp"
@@ -88,7 +124,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- 🟦 Section: Pay & Transfer -->
             <LinearLayout
                 android:id="@+id/sectionPay"
                 android:layout_below="@id/paySectionTitle"
@@ -108,10 +143,8 @@
                     android:padding="4dp"
                     android:rowCount="2"
                     android:useDefaultMargins="true" />
-
             </LinearLayout>
 
-            <!-- Section Title: UPI -->
             <TextView
                 android:id="@+id/upiSectionTitle"
                 android:layout_below="@id/sectionPay"
@@ -124,7 +157,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- 🟦 Section: UPI -->
             <LinearLayout
                 android:id="@+id/sectionUpi"
                 android:layout_below="@id/upiSectionTitle"
@@ -144,10 +176,8 @@
                     android:padding="4dp"
                     android:rowCount="2"
                     android:useDefaultMargins="true"/>
-
             </LinearLayout>
 
-            <!-- Section Title: Loans -->
             <TextView
                 android:id="@+id/privacySectionTitle"
                 android:layout_below="@id/sectionUpi"
@@ -160,7 +190,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- 🟦 Section: Loans -->
             <LinearLayout
                 android:id="@+id/sectionprivacy"
                 android:layout_below="@id/privacySectionTitle"
@@ -184,7 +213,6 @@
         </RelativeLayout>
     </ScrollView>
 
-    <!-- 📋 Navigation Drawer -->
     <ListView
         android:id="@+id/drawerList"
         android:layout_width="240dp"

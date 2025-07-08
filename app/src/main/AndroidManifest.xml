@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.suraksha">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ✅ Required permission for backend/API -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -48,7 +47,7 @@
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
 
-        <!-- ✅ Homescreen (where you’ll integrate DashboardActivity) -->
+        <!-- ✅ Homescreen -->
         <activity
             android:name=".Homescreen"
             android:exported="true"

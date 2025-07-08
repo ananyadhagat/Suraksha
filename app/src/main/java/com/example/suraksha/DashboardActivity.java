@@ -1,4 +1,5 @@
-package com.akanksha.cyber;
+package com.example.suraksha;
+import com.example.suraksha.R;
 
 import android.content.Context;
 import android.hardware.Sensor;
