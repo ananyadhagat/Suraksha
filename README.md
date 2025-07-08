@@ -6,7 +6,7 @@
 
 The system is engineered to offer continuous, adaptive, and covert protection by identifying and learning the unique interaction patterns of the legitimate user. It then reacts accordingly in scenarios involving coercion, device theft, or impersonation.
 
----
+----
 
 ## Application Flow
 
