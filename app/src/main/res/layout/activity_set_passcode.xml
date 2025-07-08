@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Top wave -->
+    <ImageView
+        android:id="@+id/topWave"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/top_arc"
+        android:layout_alignParentTop="true" />
+
+    <!-- Bottom wave -->
+    <ImageView
+        android:id="@+id/bottomWave"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:scaleType="fitXY"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/bottomarc" />
+
+    <!-- Center content -->
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/headingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set Passcode"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Align left -->
+
+        <TextView
+            android:id="@+id/subText"
+            android:layout_width="316dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Enter passcode"
+            android:textAlignment="center"
+            android:textColor="#555"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/passcodeBoxLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- OTP boxes, initially hidden -->
+        <LinearLayout
+            android:id="@+id/otpBoxLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+        <!-- OTP instruction -->
+        <TextView
+            android:id="@+id/tvOtpInstruction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="An OTP is sent to your registered mobile number, enter the OTP to save your passcode"
+            android:textSize="14sp"
+            android:textColor="#555"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            android:textAlignment="center" />  <!-- Align left -->
+
+        <Button
+            android:id="@+id/btnProceed"
+            android:layout_width="310dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/rounded_button"
+            android:text="PROCEED"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+</RelativeLayout>
