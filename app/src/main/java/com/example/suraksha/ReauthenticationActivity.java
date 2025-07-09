@@ -24,7 +24,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import org.json.JSONObject;
 import java.util.concurrent.Executor;
-
+//This screen is connected with the help button for now but is to be triggered according to the risk score
 public class ReauthenticationActivity extends AppCompatActivity {
 
     private LinearLayout bottomContainer;
