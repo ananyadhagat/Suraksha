@@ -1,4 +1,3 @@
-// BehaviorMonitor.java
 package com.example.suraksha;
 
 import android.content.Context;
@@ -49,6 +48,8 @@ public class BehaviorMonitor implements SensorEventListener {
         }
     };
 
+    private boolean isMonitoring = false;
+
     public BehaviorMonitor(Context context) {
         this.context = context;
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -57,6 +58,8 @@ public class BehaviorMonitor implements SensorEventListener {
     }
 
     public void startMonitoring() {
+        if (isMonitoring) return;
+        isMonitoring = true;
         sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
         screenHoldStartTime = System.currentTimeMillis();
@@ -64,8 +67,23 @@ public class BehaviorMonitor implements SensorEventListener {
     }
 
     public void stopMonitoring() {
+        if (!isMonitoring) return;
+        isMonitoring = false;
         sensorManager.unregisterListener(this);
         handler.removeCallbacks(logBehaviorRunnable);
+    }
+
+    public void reset() {
+        dwellTimes.clear();
+        flightTimes.clear();
+        pressures.clear();
+        sizes.clear();
+        interKeyDelays.clear();
+        accelValues.clear();
+        gyroValues.clear();
+        typingStartTime = 0;
+        typingEndTime = 0;
+        screenHoldStartTime = System.currentTimeMillis();
     }
 
     public void trackTouch(View view) {
@@ -141,16 +159,7 @@ public class BehaviorMonitor implements SensorEventListener {
             e.printStackTrace();
             return null;
         } finally {
-            dwellTimes.clear();
-            flightTimes.clear();
-            pressures.clear();
-            sizes.clear();
-            interKeyDelays.clear();
-            accelValues.clear();
-            gyroValues.clear();
-            typingStartTime = 0;
-            typingEndTime = 0;
-            screenHoldStartTime = System.currentTimeMillis();
+            reset();
         }
     }
 
