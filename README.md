@@ -4,7 +4,7 @@
 
 **Surakshak** is a secure mobile authentication system that extends beyond conventional security approaches by integrating behavioral biometrics, panic gestures, and simulated (fake) environments. These elements work together to detect unauthorized access and silently safeguard sensitive user data.
 
-The system is engineered to offer continuous, adaptive, and covert protection by identifying and learning the unique interaction patterns of the legitimate user. It then reacts accordingly in scenarios involving coercion, device theft, or impersonation by generating a risk score with the help of ML model and reauthenticating the user.
+The system offers continuous, adaptive, and covert protection by identifying the legitimate user's unique interaction patterns. It calculates a real-time **risk score** using a machine learning model and reauthenticates users if anomalies are detected.
 
 ---
 
@@ -12,92 +12,131 @@ The system is engineered to offer continuous, adaptive, and covert protection by
 
 ### 1. Signup Screen
 
-* The user begins registration by providing a name and mobile number.
-* An OTP (One-Time Password) is sent to the provided mobile number.
-* Upon successful OTP verification, the user is guided to set a secure passcode.
-* If OTP verification fails, the user is required to retry the signup process.
+* User enters name and mobile number.
+* OTP is sent via backend.
+* Upon OTP verification:
+  * A unique `userID` (UUID) is generated.
+  * Stored in `SharedPreferences`.
+  * Passed to the next activity.
 
 ### 2. Set Passcode
 
-* The user creates a six-digit numeric passcode.
-* This passcode is securely encrypted and stored in a MongoDB database.
-* Before storage, a second OTP is sent to the user’s mobile number to reconfirm authenticity.
-* Data handling complies with end-to-end security standards.
+* User creates a six-digit passcode.
+* Confirmed with second OTP.
+* Stored securely in MongoDB.
+* Triggers transition to behavior training.
 
-### 3. Choose Panic Gesture
+### 3. Behavioral Training Session (New)
 
-* The user is prompted to select a panic gesture from available options (e.g., Panic Gesture 1 or 2).
-* Upon selection, an instruction screen appears describing the chosen panic gesture and its implications.
-* Panic gestures are designed to silently activate emergency actions such as:
+* Launches `TrainingSessionActivity`.
+* Displays 4 training sentences for the user to type.
+* Collects behavioral traits:
+  * Typing speed
+  * Dwell time
+  * Flight time
+  * Tap pressure
+  * Inter-key delay
+  * Touch size
+  * Screen hold time
+  * Accelerometer and gyroscope patterns
+* Sends data via `/upload-training-batch`.
+* Triggers training with `/train-hybrid-model`.
+* Calculates average behavior vector.
+* Stores baseline in MongoDB.
 
-  * Logging out of the session
-  * Displaying a decoy (fake) home screen that replicates the interface but lacks functionality
+### 4. Login Screen
 
-**Summary of Panic Gestures:**
+* Login via:
+  * Passcode
+  * Fingerprint (BiometricPrompt)
+  * OTP (Forgot Passcode)
+* After login:
+  * Retrieves mobile number and `userID`.
+  * Redirects to home screen.
 
-* **Panic Gesture 1:**
+### 5. Home Screen
 
-  * Login Screen: Enter the last six digits of your registered mobile number instead of your passcode.
-  * Home Screen: Tap the template box above the Pay and Transfer section twice, then hold for 3 seconds on the third tap.
-  * TPIN Entry: Tap the TPIN field twice, then hold on the third tap for 3 seconds.
+* Displays user details, logout, and feature grid.
+* Panic gesture detection triggers fake home.
+* Behavior monitoring starts automatically.
 
-* **Panic Gesture 2:**
+#### Real-Time Monitoring (New)
 
-  * Login Screen: Enter the first six digits of your registered mobile number instead of your passcode.
-  * Home Screen: Hold the notification icon for 5 seconds.
-  * TPIN Entry: Tap and hold the TPIN field for 5 seconds.
+* Integrated via `BehaviorMonitor.java`.
+* Monitors:
+  * Typing patterns
+  * Touch metrics
+  * Motion sensors
+  * Screen hold time
+* Every 20 seconds:
+  * Constructs a behavior vector.
+  * Sends to `/evaluate-risk`.
+  * Logs or reacts based on returned risk score.
 
-Triggering either gesture will silently lock the app for 10 minutes.
+---
 
-After configuration, the user is directed to the home screen.
+## New Files & Features Added
 
-### 4. Home Screen
+### ✅ `BehaviorMonitor.java`
 
-* Following successful registration, the user is redirected to the main application dashboard.
-* Current features on the home screen include:
+* Standalone class for collecting sensor and touch-based metrics continuously.
+* Runs inside `Homescreen.java` and other key screens.
+* Sends vector to backend at 20s intervals.
 
-  * Display of user details and Navigation bar on tapping profile icon.
-  * Logout functionality triggers on clicking logout button on top at right corner.
-  * Activation of a fake home screen upon panic gesture trigger, which includes automatic logout
-  * Display of the Send Money interface
-  * Integration and support for Privacy Gestures 1 and 2 as configured by the user
-  * Creation of TPIN (Transaction PIN): User must verify with OTP before creating a TPIN, which is then stored in encrypted form in the database
-  * Track Your Behavior screen: Displays user activity and behavioral logs 
-  * Customize Risk Behavior screen: Allows the user to choose reauthentication options to appear according to the risk score generated.
-  * Change Passcode feature: Enables user to securely update their passcode from the home screen by authenticating with OTP.
+### ✅ `RiskAnalyzer.java`
 
-### 5. Login Screen
+* Handles sending behavioral vectors and logging risk scores inside Android app.
 
-* Users can authenticate or login through the following methods:
+### ✅ Updated `Homescreen.java`
 
-  * Passcode entry
-  * Biometric verification via fingerprint using the BiometricPrompt API
-  * Passcode recovery through the Forgot Passcode option using OTP verification
+* Integrated `BehaviorMonitor`.
+* Fetches `userID` from `SharedPreferences`.
+* Handles panic gestures and logout.
+* Sends behavior vectors to backend API.
+
+### ✅ Updated `TrainingSessionActivity.java`
+
+* Collects behavioral training data.
+* Sends to `/upload-training-batch`.
+* Triggers `/train-hybrid-model`.
+
+### ✅ Backend — Flask `app.py` Updates
+
+* **New Route:** `/evaluate-risk`:
+  * Accepts incoming vector.
+  * Fetches stored baseline.
+  * Calculates risk score.
+  * Returns normalized risk between `0–100`.
+
+* Improved:
+  * `upload-training-batch`
+  * `train-hybrid-model` logic
+
+* MongoDB stores:
+  * `userID`, `average_vector`, `risk_score`, `timestamp`
 
 ---
 
 ## Features Implemented
 
-* User signup with OTP-based verification
-* Secure passcode setup with encryption and double OTP confirmation
-* Panic gesture configuration and instruction flow
-* Panic gesture triggering
-* Creation of transaction PIN with OTP verification and encryption
-* Authentication via passcode and biometric recognition
-* Logout functionality
-* Forgot Passcode workflow with OTP recovery
-* Track Your Behavior screen (new)
-* Customize Risk Behavior screen (new)
-* Enabling of Change Passcode feature on home screen (new)
+* User signup and secure passcode storage
+* Panic gesture configuration and decoy home screen
+* OTP-based TPIN generation and biometric login
+* **✅ Training Module for behavioral learning**
+* **✅ Real-Time Continuous Monitoring**
+* **✅ ML-based Risk Score Evaluation**
+* Track Your Behavior screen
+* Customize Risk Behavior screen
+* Passcode change with OTP
 
 ---
 
 ## Upcoming Features
 
-* Behavioral Pattern Recognition — integration of machine learning models to detect user-specific behavioral traits
-* Training Module — an interactive session to allow users to train the system with their typing and touch behavior
-* Continuous Behavioral Monitoring — real-time tracking post-login to calculate a dynamic risk score and detect anomalies
-* Risk Score Generation — Reauthentication on the basis of generated risk score.
+* Anomaly-based reauthentication logic (in progress)
+* Risk-based session locking
+* Dynamic UI adaptation based on score
+* Admin portal to visualize analytics
 
 ---
 
@@ -105,17 +144,11 @@ After configuration, the user is directed to the home screen.
 
 ### Prerequisites
 
-* Android Studio (latest version recommended)
-* Java Development Kit (JDK) 8 or higher
-* Node.js (Latest Long-Term Support version)
-* MongoDB Atlas account with proper network access permissions
-* An Android emulator or a physical Android device with API level 24 or above
-
-### Frontend Dependencies
-
-* Volley: Handles REST API communication
-* BiometricPrompt API: Enables fingerprint-based biometric authentication
-* SharedPreferences: Manages session and local configuration data
+* Android Studio (latest)
+* JDK 8+
+* MongoDB Atlas
+* Python 3.8+ with Flask
+* Android Device/API 24+
 
 ---
 
