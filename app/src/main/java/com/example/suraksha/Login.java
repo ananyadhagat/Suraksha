@@ -24,6 +24,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONObject;
 
 import java.util.Calendar;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 public class Login extends AppCompatActivity {
@@ -34,8 +35,8 @@ public class Login extends AppCompatActivity {
     TextView greetingText, tvForgot;
 
     final int BOX_COUNT = 6;
-    String mobile;
-    String userUrl = "http://192.168.1.4:5000/api/user";
+    String mobile, userID;
+    String userUrl = "http://172.16.19.12:5000/api/user";
     int resetAttempts = 0;
     final int MAX_RESETS = 3;
 
@@ -51,8 +52,9 @@ public class Login extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
         mobile = prefs.getString("mobile", null);
+        userID = prefs.getString("userID", null);
 
-        if (mobile == null) {
+        if (mobile == null || userID == null) {
             startActivity(new Intent(Login.this, SignUp.class));
             finish();
             return;
@@ -73,7 +75,7 @@ public class Login extends AppCompatActivity {
                 } else if (selectedGesture == 2 && PanicGesture2.isLoginPanicPin(enteredPass, mobile)) {
                     goToFakeHomeWithServerDownDialog();
                 } else {
-                    verifyPasscode(mobile, enteredPass);
+                    verifyPasscode(userID, enteredPass); // use userID
                 }
 
             } else {
@@ -146,9 +148,9 @@ public class Login extends AppCompatActivity {
         else return "Good Evening";
     }
 
-    private void verifyPasscode(String mobile, String passcode) {
+    private void verifyPasscode(String userID, String passcode) {
         try {
-            JSONObject params = new JSONObject().put("mobile", mobile).put("passcode", passcode);
+            JSONObject params = new JSONObject().put("userID", userID).put("passcode", passcode);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
                     userUrl + "/login",
@@ -174,8 +176,8 @@ public class Login extends AppCompatActivity {
         PanicUtils.triggerPanicLock(this);
         Intent i = new Intent(Login.this, FakeHomescreen.class);
         new Handler().postDelayed(() -> showServerDownDialog(), 1000);
-
     }
+
     private void showServerDownDialog() {
         new AlertDialog.Builder(Login.this)
                 .setTitle("Banking Server Down")
@@ -184,6 +186,7 @@ public class Login extends AppCompatActivity {
                 .setPositiveButton("OK", (dialog, which) -> finishAffinity())
                 .show();
     }
+
     private void createBoxes(LinearLayout layout, int count) {
         layout.removeAllViews();
         passcodeBoxes = new EditText[count];

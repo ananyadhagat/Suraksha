@@ -1,6 +1,11 @@
 flask
 flask-cors
 pymongo
+tensorflow
+xgboost
+scikit-learn
+numpy
+pandas
 python-dotenv
 tensorflow
 xgboost

@@ -5,9 +5,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -29,8 +28,9 @@ public class SplashActivity extends AppCompatActivity {
                     SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
                     boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
                     String mobile = prefs.getString("mobile", null);
+                    String userID = prefs.getString("userID", null); // ⬅️ Retrieve userID
 
-                    if (isLoggedIn && mobile != null) {
+                    if (isLoggedIn && mobile != null && userID != null) {
                         startActivity(new Intent(SplashActivity.this, Login.class));
                     } else {
                         startActivity(new Intent(SplashActivity.this, SignUp.class));
@@ -57,6 +57,5 @@ public class SplashActivity extends AppCompatActivity {
             Toast.makeText(this, "App temporarily locked", Toast.LENGTH_SHORT).show();
             finish();
         }
-
     }
 }

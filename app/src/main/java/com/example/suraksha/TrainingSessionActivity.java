@@ -2,6 +2,7 @@ package com.example.suraksha;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -63,6 +65,8 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
     ArrayList<Float> accelValues = new ArrayList<>();
     ArrayList<Float> gyroValues = new ArrayList<>();
 
+    String userID;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +76,9 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
         inputField = findViewById(R.id.user_input);
         nextBtn = findViewById(R.id.next_button);
         stepView = findViewById(R.id.session_progress);
+
+        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        userID = prefs.getString("userID", "user_01");
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -191,7 +198,7 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
         JSONObject finalObject = new JSONObject();
         JSONArray batch = new JSONArray(trainingDataList);
         try {
-            finalObject.put("userID", "user_01");
+            finalObject.put("userID", userID);
             finalObject.put("training_batch", batch);
             finalObject.put("label", 1);
         } catch (JSONException e) {

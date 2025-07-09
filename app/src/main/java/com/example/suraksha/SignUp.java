@@ -2,6 +2,7 @@ package com.example.suraksha;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -10,9 +11,12 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.android.volley.*;
 import com.android.volley.toolbox.*;
 import org.json.JSONObject;
+
+import java.util.UUID;
 
 public class SignUp extends AppCompatActivity {
     TextView headingText, subText, tvOtpMessage;
@@ -20,7 +24,7 @@ public class SignUp extends AppCompatActivity {
     EditText editTextPhone, inputName;
     Button btnSendOtp, btnVerifyOtp;
     EditText[] otpBoxes;
-    String backendUrl = "http://192.168.1.4:5000/api/otp";
+    String backendUrl = "http://172.16.19.12:5000/api/otp";
     final int OTP_BOX_COUNT = 6;
 
     @Override
@@ -29,7 +33,6 @@ public class SignUp extends AppCompatActivity {
         overridePendingTransition(R.anim.slide_in_up, R.anim.stay);
         setContentView(R.layout.activity_signup);
 
-        // Initialize views
         headingText = findViewById(R.id.headingText);
         subText = findViewById(R.id.subText);
         otpBoxLayout = findViewById(R.id.otpBoxLayout);
@@ -39,12 +42,10 @@ public class SignUp extends AppCompatActivity {
         btnVerifyOtp = findViewById(R.id.btnVerifyOtp);
         tvOtpMessage = findViewById(R.id.tvOtpMessage);
 
-        // Hide OTP section and verify button initially
         otpBoxLayout.setVisibility(View.GONE);
         btnVerifyOtp.setVisibility(View.GONE);
         tvOtpMessage.setVisibility(View.GONE);
 
-        // Send OTP
         btnSendOtp.setOnClickListener(v -> {
             String mobile = editTextPhone.getText().toString().trim();
             String name = inputName.getText().toString().trim();
@@ -55,11 +56,9 @@ public class SignUp extends AppCompatActivity {
             }
         });
 
-        // Verify OTP
         btnVerifyOtp.setOnClickListener(v -> {
             String otp = getOtpFromBoxes();
             String mobile = editTextPhone.getText().toString().trim();
-
             if (otp.length() == 6) {
                 verifyOtp(mobile, otp);
             } else {
@@ -125,14 +124,11 @@ public class SignUp extends AppCompatActivity {
                     response -> {
                         headingText.setText("Enter OTP");
                         subText.setVisibility(View.GONE);
-
-                        // Hide inputs: phone and name EditTexts
                         editTextPhone.setVisibility(View.GONE);
                         inputName.setVisibility(View.GONE);
                         findViewById(R.id.nameSubText).setVisibility(View.GONE);
 
                         createOtpBoxes(OTP_BOX_COUNT);
-
                         btnVerifyOtp.setVisibility(View.VISIBLE);
                         btnSendOtp.setVisibility(View.GONE);
 
@@ -140,7 +136,6 @@ public class SignUp extends AppCompatActivity {
                             String otp = response.getString("otp");
                             tvOtpMessage.setText("Your OTP is: " + otp + " and it is valid for 5 minutes only");
                             tvOtpMessage.setVisibility(View.VISIBLE);
-                            System.out.println("OTP from backend: " + otp);
                         } catch (Exception e) {
                             Toast.makeText(this, "OTP received but can't parse", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
@@ -151,6 +146,7 @@ public class SignUp extends AppCompatActivity {
                         error.printStackTrace();
                     }
             );
+
             Volley.newRequestQueue(this).add(request);
         } catch (Exception e) {
             e.printStackTrace();
@@ -170,6 +166,18 @@ public class SignUp extends AppCompatActivity {
                     response -> {
                         Toast.makeText(this, "✅ OTP Verified!", Toast.LENGTH_SHORT).show();
 
+                        // 👉 Generate and save UUID as userID
+                        String userID = UUID.randomUUID().toString();
+                        String name = inputName.getText().toString().trim();
+
+                        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("userID", userID);
+                        editor.putString("mobile", mobile);
+                        editor.putString("name", name);
+                        editor.putBoolean("isLoggedIn", true);
+                        editor.apply();
+
                         new AlertDialog.Builder(SignUp.this)
                                 .setTitle("Set Passcode")
                                 .setMessage("For your privacy and faster access, please set a secure passcode. You’ll use this passcode to unlock the app next time.\n\nYou can also enable fingerprint login after setting your passcode.")
@@ -177,7 +185,8 @@ public class SignUp extends AppCompatActivity {
                                 .setPositiveButton("Set Passcode", (dialog, which) -> {
                                     Intent intent = new Intent(SignUp.this, Passcode.class);
                                     intent.putExtra("mobile", mobile);
-                                    intent.putExtra("name", inputName.getText().toString().trim());
+                                    intent.putExtra("name", name);
+                                    intent.putExtra("userID", userID);
                                     startActivity(intent);
                                     finish();
                                 })

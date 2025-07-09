@@ -3,12 +3,14 @@ package com.example.suraksha;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
+import android.graphics.Color;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -24,14 +26,19 @@ public class Homescreen extends AppCompatActivity {
     GridLayout payGrid, upiGrid, privacyGrid;
     DrawerLayout drawerLayout;
     TextView userInitials, fullName, phoneNumber;
-    String userUrl = "http://192.168.1.4:5000/api/user";
+    String userUrl = "http://172.16.19.12:5000/api/user";
+    String riskUrl = "http://172.16.19.12:5001/evaluate-risk";
+
+    private BehaviorMonitor behaviorMonitor;
+    private Handler riskHandler;
+    private Runnable riskRunnable;
+    private String userID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homescreen);
 
-        // 🔒 Maintenance check
         if (PanicUtils.isAppLocked(this)) {
             showMaintenanceDialog();
             return;
@@ -46,6 +53,9 @@ public class Homescreen extends AppCompatActivity {
         fullName = findViewById(R.id.fullName);
         phoneNumber = findViewById(R.id.phoneNumber);
 
+        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        userID = prefs.getString("userID", null);
+
         fetchUserDataFromDatabase();
 
         ImageView profileIcon = findViewById(R.id.profileIcon);
@@ -55,21 +65,18 @@ public class Homescreen extends AppCompatActivity {
             PanicUtils.triggerPanicLock(Homescreen.this);
             return true;
         });
-        View bannerView = findViewById(R.id.bannerOffers); // ← ensure you have this in layout
+        View bannerView = findViewById(R.id.bannerOffers);
 
-        SharedPreferences sp = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
-        int selectedGesture = sp.getInt("selectedGesture", 0);
-
+        int selectedGesture = prefs.getInt("selectedGesture", 0);
         if (selectedGesture == 1) {
-            PanicGesture1.handleBannerGesture(bannerView, this); // 🆕 TAP + HOLD gesture
+            PanicGesture1.handleBannerGesture(bannerView, this);
         } else if (selectedGesture == 2) {
-            PanicGesture2.handleNotificationGesture(notifIcon, this); // 🆕 5s long press
+            PanicGesture2.handleNotificationGesture(notifIcon, this);
         }
 
         profileIcon.setOnClickListener(v -> drawerLayout.openDrawer(Gravity.LEFT));
         logoutIcon.setOnClickListener(v -> showLogoutDialog());
 
-        // ... Grid Items
         addIconToGrid(payGrid, R.drawable.ic_send, "Send Money");
         addIconToGrid(payGrid, R.drawable.ic_bill, "Bill Payment");
         addIconToGrid(payGrid, R.drawable.ic_card, "Card-less Pay");
@@ -90,6 +97,46 @@ public class Homescreen extends AppCompatActivity {
         addIconToGrid(privacyGrid, R.drawable.ic_tpin, "Set TPIN");
         addIconToGrid(privacyGrid, R.drawable.ic_location, "Enable Location");
         addIconToGrid(privacyGrid, R.drawable.ic_help, "Help & Support");
+
+        behaviorMonitor = new BehaviorMonitor(this);
+        behaviorMonitor.startMonitoring();
+        behaviorMonitor.trackTouch(findViewById(android.R.id.content));
+
+        riskHandler = new Handler();
+        riskRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (behaviorMonitor != null && userID != null) {
+                    JSONObject vector = behaviorMonitor.getBehaviorVectorAsJSON(userID);
+                    if (vector != null) {
+                        JsonObjectRequest riskRequest = new JsonObjectRequest(
+                                Request.Method.POST,
+                                riskUrl,
+                                vector,
+                                response -> {
+                                    double riskScore = response.optDouble("risk_score", -1);
+                                    Log.d("RiskScore", "📊 Risk score for userID=" + userID + " is: " + riskScore);
+                                },
+                                error -> Log.e("RiskEvalError", error.toString())
+                        );
+                        Volley.newRequestQueue(Homescreen.this).add(riskRequest);
+                    }
+                }
+                riskHandler.postDelayed(this, 20000);
+            }
+        };
+        riskHandler.postDelayed(riskRunnable, 20000);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (behaviorMonitor != null) {
+            behaviorMonitor.stopMonitoring();
+        }
+        if (riskHandler != null) {
+            riskHandler.removeCallbacks(riskRunnable);
+        }
     }
 
     private void fetchUserDataFromDatabase() {

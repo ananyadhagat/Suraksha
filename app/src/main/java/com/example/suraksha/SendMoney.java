@@ -23,7 +23,9 @@ public class SendMoney extends AppCompatActivity {
     private EditText editTextAC, editTextIFSC, editTextRecipient, editTextAmount, editTextMessage, editTextPIN;
     private Button btnSend;
     private String mobile;
-    private final String tpinVerifyUrl = "http://192.168.1.4:5000/api/user/verify-tpin";
+    private final String tpinVerifyUrl = "http://172.16.19.12:5000/api/user/verify-tpin";
+
+    private BehaviorMonitor behaviorMonitor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,17 @@ public class SendMoney extends AppCompatActivity {
             PanicGesture2.handleTPINTapGesture2(editTextPIN, this);
         }
 
+        // Initialize and start behavior monitoring
+        behaviorMonitor = new BehaviorMonitor(this);
+        behaviorMonitor.trackTouch(findViewById(android.R.id.content));
+        behaviorMonitor.attachToEditText(editTextAC);
+        behaviorMonitor.attachToEditText(editTextIFSC);
+        behaviorMonitor.attachToEditText(editTextRecipient);
+        behaviorMonitor.attachToEditText(editTextAmount);
+        behaviorMonitor.attachToEditText(editTextMessage);
+        behaviorMonitor.attachToEditText(editTextPIN);
+        behaviorMonitor.startMonitoring();
+
         btnSend.setOnClickListener(v -> {
             String accnumber = editTextAC.getText().toString().trim();
             String recipient = editTextRecipient.getText().toString().trim();
@@ -70,6 +83,11 @@ public class SendMoney extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (behaviorMonitor != null) behaviorMonitor.stopMonitoring();
+    }
 
     private void verifyTPIN(String tpin, String amount, String recipient) {
         try {
@@ -100,7 +118,7 @@ public class SendMoney extends AppCompatActivity {
         icon.setImageResource(R.drawable.ic_tick_green);
         statusText.setText("Transaction Successful");
         statusText.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        desc.setText("₹" + amount + " sent to " + recipient);
+        desc.setText("\u20B9" + amount + " sent to " + recipient);
 
         new AlertDialog.Builder(this)
                 .setView(view)

@@ -41,45 +41,65 @@
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
 
-        <!-- ✅ Passcode SCREEN -->
-        <activity android:name=".Passcode"
+        <!-- ✅ PASSCODE SCREEN -->
+        <activity
+            android:name=".Passcode"
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
 
-        <!-- ✅ HOMESCREEN (New Activity Added) -->
+        <!-- ✅ HOMESCREEN -->
         <activity
             android:name=".Homescreen"
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
 
-        <activity android:name=".TrackBehaviorActivity"
+        <!-- ✅ TRACK BEHAVIOR -->
+        <activity
+            android:name=".TrackBehaviorActivity"
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
 
+        <!-- ✅ CUSTOMIZATION -->
         <activity
             android:name=".Customize"
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
 
+        <!-- ✅ CHANGE PASSCODE (Dialog Style) -->
         <activity
             android:name=".ChangePasscode"
             android:exported="true"
             android:theme="@style/Theme.TransparentDialog" />
+
+        <!-- ✅ TPIN SCREEN (Dialog Style) -->
         <activity
             android:name=".TPINActivity"
             android:exported="true"
             android:theme="@style/Theme.TransparentDialog" />
+
+        <!-- ✅ PANIC GESTURE SELECTION -->
         <activity
             android:name=".ChoosePanic"
             android:exported="true"
-            android:theme="@style/Theme.Suraksha"/>
+            android:theme="@style/Theme.Suraksha" />
+
+        <!-- ✅ FAKE HOMESCREEN -->
         <activity
             android:name=".FakeHomescreen"
             android:exported="true"
-            android:theme="@style/Theme.Suraksha"/>
+            android:theme="@style/Theme.Suraksha" />
+
+        <!-- ✅ SEND MONEY -->
         <activity
             android:name=".SendMoney"
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
+
+        <!-- ✅ TRAINING SESSION (MISSING ONE) -->
+        <activity
+            android:name=".TrainingSessionActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha" />
+
     </application>
 </manifest>

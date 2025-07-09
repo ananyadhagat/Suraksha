@@ -19,7 +19,7 @@ import org.json.JSONObject;
 public class ChangePasscode extends AppCompatActivity {
 
     String mobile;
-    String userUrl = "http://192.168.1.4:5000/api/user";
+    String userUrl = "http://172.16.19.12:5000/api/user";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

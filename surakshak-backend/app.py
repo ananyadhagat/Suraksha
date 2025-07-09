@@ -32,11 +32,37 @@ def average_behavior_vector(batch):
     }
 
 def calculate_risk_score(vector, baseline):
-    keys = vector.keys() & baseline.keys()
-    if not keys:
-        return 100.0
-    distance = sum((vector[k] - baseline[k]) ** 2 for k in keys)
-    return round(min(100, (np.sqrt(distance) / 200) * 100), 2)
+    weights = {
+        "TypingSpeed": 1.2,
+        "DwellTime": 1.0,
+        "FlightTime": 1.0,
+        "InterKeyDelay": 1.0,
+        "TapPressure": 1.5,
+        "TouchSize": 0.8,
+        "TiltAngle": 0.5,
+        "GyroPattern": 0.5,
+        "ScreenHoldTime": 0.8
+    }
+
+    scales = {
+        "TypingSpeed": 300.0,
+        "DwellTime": 500.0,
+        "FlightTime": 500.0,
+        "InterKeyDelay": 500.0,
+        "TapPressure": 2.0,
+        "TouchSize": 1.0,
+        "TiltAngle": 90.0,
+        "GyroPattern": 90.0,
+        "ScreenHoldTime": 3000.0
+    }
+
+    distance = 0.0
+    for key in vector.keys() & baseline.keys():
+        diff = (vector[key] - baseline[key]) / scales.get(key, 1.0)
+        distance += weights.get(key, 1.0) * (diff ** 2)
+
+    risk = round(min(100.0, (np.sqrt(distance) / 2) * 100), 2)
+    return risk
 
 # ---------- Routes ----------
 @app.route('/upload-training-batch', methods=['POST'])
@@ -44,7 +70,7 @@ def upload_training_batch():
     try:
         data = request.json
         data['timestamp'] = datetime.datetime.now()
-        result = training_collection.insert_one(data)
+        training_collection.insert_one(data)
         print("✅ Training data uploaded for:", data.get("userID"))
         return jsonify({"status": "success", "message": "Training batch uploaded ✅"}), 200
     except Exception as e:
@@ -67,9 +93,8 @@ def train_hybrid_model():
             return jsonify({"status": "error", "message": "No training batch found"}), 400
 
         avg_vector = average_behavior_vector(training_batch)
-        risk_score = calculate_risk_score(avg_vector, avg_vector)  # Self baseline
+        risk_score = calculate_risk_score(avg_vector, avg_vector)
 
-        # Save in training_sessions
         training_collection.update_one(
             {"_id": ObjectId(doc_id)},
             {"$set": {
@@ -79,7 +104,6 @@ def train_hybrid_model():
             }}
         )
 
-        # Save in risk_scores for real-time comparison
         risk_collection.update_one(
             {"userID": user_id},
             {"$set": {

@@ -14,16 +14,20 @@ import com.android.volley.*;
 import com.android.volley.toolbox.*;
 import org.json.JSONObject;
 
+import java.util.UUID;
+
 public class Passcode extends AppCompatActivity {
     LinearLayout passcodeLayout, otpLayout;
     Button btnProceed;
     EditText[] passcodeBoxes, otpBoxes;
     TextView subText, tvOtpInstruction;
-    String mobile,name, passcode = "";
+    String mobile, name, passcode = "";
     final int BOX_COUNT = 6;
+    String userID;
+
     // URLs
-    String otpUrl = "http://192.168.1.4:5000/api/otp";
-    String userUrl = "http://192.168.1.4:5000/api/user";
+    String otpUrl = "http://172.16.19.12:5000/api/otp";
+    String userUrl = "http://172.16.19.12:5000/api/user";
     boolean otpSent = false;
 
     @Override
@@ -52,8 +56,6 @@ public class Passcode extends AppCompatActivity {
                 passcode = getBoxValue(passcodeBoxes);
                 if (passcode.length() == BOX_COUNT) {
                     sendOtpAgain(mobile);
-
-                    // Update UI on first OTP send
                     otpLayout.setVisibility(View.VISIBLE);
                     if (otpBoxes == null || otpBoxes.length == 0) {
                         createBoxes(otpLayout, BOX_COUNT, false);
@@ -114,8 +116,9 @@ public class Passcode extends AppCompatActivity {
                     params,
                     response -> {
                         Toast.makeText(this, "✅ OTP Verified!", Toast.LENGTH_SHORT).show();
-                        passcode = getBoxValue(passcodeBoxes); // Ensure correct passcode is sent
-                        savePasscodeToDB(mobile, passcode,name );
+                        passcode = getBoxValue(passcodeBoxes);
+                        generateAndSaveUserID();
+                        savePasscodeToDB(mobile, passcode, name, userID);
                     },
                     error -> {
                         Toast.makeText(this, "OTP verification failed", Toast.LENGTH_SHORT).show();
@@ -129,12 +132,20 @@ public class Passcode extends AppCompatActivity {
         }
     }
 
-    private void savePasscodeToDB(String mobile, String passcode,String name) {
+    private void generateAndSaveUserID() {
+        userID = UUID.randomUUID().toString();
+        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        prefs.edit().putString("userID", userID).apply();
+    }
+
+    private void savePasscodeToDB(String mobile, String passcode, String name, String userID) {
         try {
             JSONObject params = new JSONObject();
             params.put("mobile", mobile);
             params.put("passcode", passcode);
             params.put("name", name);
+            params.put("userID", userID);
+
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
                     userUrl + "/register",
@@ -147,8 +158,10 @@ public class Passcode extends AppCompatActivity {
                                 .putBoolean("isLoggedIn", true)
                                 .putString("mobile", mobile)
                                 .apply();
+
                         Intent intent = new Intent(Passcode.this, ChoosePanic.class);
                         intent.putExtra("mobile", mobile);
+                        intent.putExtra("userID", userID);
                         startActivity(intent);
                         finish();
                     },
@@ -168,7 +181,6 @@ public class Passcode extends AppCompatActivity {
     }
 
     private void createBoxes(LinearLayout layout, int count, boolean isPasscode) {
-        // Prevent duplicate creation
         if (isPasscode && passcodeBoxes != null && passcodeBoxes.length == count) return;
         if (!isPasscode && otpBoxes != null && otpBoxes.length == count) return;
 
@@ -191,8 +203,7 @@ public class Passcode extends AppCompatActivity {
             box.addTextChangedListener(new TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
                 @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-                @Override
-                public void afterTextChanged(Editable s) {
+                @Override public void afterTextChanged(Editable s) {
                     if (s.length() == 1 && finalI < count - 1) {
                         if (isPasscode) passcodeBoxes[finalI + 1].requestFocus();
                         else otpBoxes[finalI + 1].requestFocus();

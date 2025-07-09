@@ -19,8 +19,10 @@ import org.json.JSONObject;
 public class TPINActivity extends AppCompatActivity {
 
     String mobile;
-    String userUrl = "http://192.168.1.4:5000/api/user";
-    String otpUrl = "http://192.168.1.4:5000/api/otp";
+    String userUrl = "http://172.16.19.12:5000/api/user";
+    String otpUrl = "http://172.16.19.12:5000/api/otp";
+
+    private BehaviorMonitor behaviorMonitor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +36,9 @@ public class TPINActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        behaviorMonitor = new BehaviorMonitor(this);
+        behaviorMonitor.startMonitoring();
 
         showSetTPINDialog();
     }
@@ -56,6 +61,11 @@ public class TPINActivity extends AppCompatActivity {
         EditText[] otpBoxes = createBoxes(dialog, R.id.otpLayout, 6);
         EditText[] newTPIN = createBoxes(dialog, R.id.newTPINLayout, 4);
         EditText[] confirmTPIN = createBoxes(dialog, R.id.confirmTPINLayout, 4);
+
+        for (EditText box : otpBoxes) behaviorMonitor.attachToEditText(box);
+        for (EditText box : newTPIN) behaviorMonitor.attachToEditText(box);
+        for (EditText box : confirmTPIN) behaviorMonitor.attachToEditText(box);
+        behaviorMonitor.trackTouch(dialog.findViewById(android.R.id.content));
 
         step1.setVisibility(View.VISIBLE);
         step2.setVisibility(View.GONE);
@@ -190,5 +200,11 @@ public class TPINActivity extends AppCompatActivity {
         StringBuilder sb = new StringBuilder();
         for (EditText b : boxes) sb.append(b.getText().toString().trim());
         return sb.toString();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (behaviorMonitor != null) behaviorMonitor.stopMonitoring();
     }
 }

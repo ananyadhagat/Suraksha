@@ -134,7 +134,7 @@ public class ChoosePanic extends AppCompatActivity {
                 .setMessage("Your app is learning how you swipe, type, and move —\nso it can spot intruders even after login.\n\n1) Tracks: Swipe speed | Typing style | Phone motion\n2) Data stays only on your phone\n3) No messages, passwords, or personal files are touched\n\nJust use the app like normal — protection starts now!")
                 .setCancelable(false)
                 .setPositiveButton("OK", (dialog, which) -> {
-                    startActivity(new Intent(ChoosePanic.this, Homescreen.class));
+                    startActivity(new Intent(ChoosePanic.this, TrainingSessionActivity.class));
                     finish();
                 })
                 .show();
