@@ -14,8 +14,6 @@ import com.android.volley.*;
 import com.android.volley.toolbox.*;
 import org.json.JSONObject;
 
-import java.util.UUID;
-
 import static com.example.suraksha.utils.Constants.USER_API;
 import static com.example.suraksha.utils.Constants.BASE_IP;
 
@@ -38,6 +36,7 @@ public class Passcode extends AppCompatActivity {
 
         mobile = getIntent().getStringExtra("mobile");
         name = getIntent().getStringExtra("name");
+        userID = getIntent().getStringExtra("userID");  // <-- get userID from intent here
 
         passcodeLayout = findViewById(R.id.passcodeBoxLayout);
         otpLayout = findViewById(R.id.otpBoxLayout);
@@ -118,7 +117,7 @@ public class Passcode extends AppCompatActivity {
                     response -> {
                         Toast.makeText(this, "✅ OTP Verified!", Toast.LENGTH_SHORT).show();
                         passcode = getBoxValue(passcodeBoxes);
-                        generateAndSaveUserID();
+                        // No new UUID generation here!
                         savePasscodeToDB(mobile, passcode, name, userID);
                     },
                     error -> {
@@ -131,12 +130,6 @@ public class Passcode extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private void generateAndSaveUserID() {
-        userID = UUID.randomUUID().toString();
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        prefs.edit().putString("userID", userID).apply();
     }
 
     private void savePasscodeToDB(String mobile, String passcode, String name, String userID) {
