@@ -9,7 +9,7 @@ import android.os.Handler;
 
 public class PanicUtils {
 
-    private static final String PREFS_NAME = "SurakshaPrefs";
+    private static final String PREFS_NAME = "UserPrefs";
     private static final String PANIC_LOCK_TIME_KEY = "panicLockTime";
     private static final long LOCK_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 

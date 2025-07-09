@@ -22,7 +22,7 @@ public class SendMoney extends AppCompatActivity {
 
     private EditText editTextAC, editTextIFSC, editTextRecipient, editTextAmount, editTextMessage, editTextPIN;
     private Button btnSend;
-    private String mobile;
+    private String mobile, userID;
     private final String tpinVerifyUrl = "http://172.16.19.12:5000/api/user/verify-tpin";
 
     private BehaviorMonitor behaviorMonitor;
@@ -37,8 +37,9 @@ public class SendMoney extends AppCompatActivity {
 
         setContentView(R.layout.send_money);
 
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         mobile = prefs.getString("mobile", null);
+        userID = prefs.getString("userID", null); // ✅ Added for future behavioral tracking
 
         editTextAC = findViewById(R.id.editTextAC);
         editTextRecipient = findViewById(R.id.editTextRecipient);

@@ -134,7 +134,7 @@ public class Passcode extends AppCompatActivity {
 
     private void generateAndSaveUserID() {
         userID = UUID.randomUUID().toString();
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         prefs.edit().putString("userID", userID).apply();
     }
 
@@ -153,10 +153,11 @@ public class Passcode extends AppCompatActivity {
                     response -> {
                         Toast.makeText(this, "🎉 Passcode saved!", Toast.LENGTH_SHORT).show();
 
-                        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+                        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                         prefs.edit()
                                 .putBoolean("isLoggedIn", true)
                                 .putString("mobile", mobile)
+                                .putString("userID", userID)
                                 .apply();
 
                         Intent intent = new Intent(Passcode.this, ChoosePanic.class);

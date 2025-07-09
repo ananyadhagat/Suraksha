@@ -77,8 +77,14 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
         nextBtn = findViewById(R.id.next_button);
         stepView = findViewById(R.id.session_progress);
 
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
-        userID = prefs.getString("userID", "user_01");
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        userID = prefs.getString("userID", null);
+
+        if (userID == null) {
+            Toast.makeText(this, "User ID not found. Please sign up again.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);

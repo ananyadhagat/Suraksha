@@ -2,6 +2,7 @@
 package com.example.suraksha;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -135,7 +136,6 @@ public class BehaviorMonitor implements SensorEventListener {
             obj.put("TiltAngle", avgAccel);
             obj.put("GyroPattern", avgGyro);
             obj.put("ScreenHoldTime", screenHoldTime);
-
             return obj;
         } catch (Exception e) {
             e.printStackTrace();
@@ -155,7 +155,9 @@ public class BehaviorMonitor implements SensorEventListener {
     }
 
     private void logBehaviorVector() {
-        JSONObject vec = getBehaviorVectorAsJSON("debug");
+        SharedPreferences prefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        String userID = prefs.getString("userID", "debug");
+        JSONObject vec = getBehaviorVectorAsJSON(userID);
         if (vec != null)
             Log.d("BehaviorMonitor", "Vector=" + vec.toString());
     }

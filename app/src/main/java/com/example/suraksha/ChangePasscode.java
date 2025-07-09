@@ -18,23 +18,24 @@ import org.json.JSONObject;
 
 public class ChangePasscode extends AppCompatActivity {
 
-    String mobile;
+    String mobile, userID;
     String userUrl = "http://172.16.19.12:5000/api/user";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         mobile = prefs.getString("mobile", null);
+        userID = prefs.getString("userID", null);
 
-        if (mobile == null) {
+        if (mobile == null || userID == null) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        showChangePasscodeDialog();  // no layout, just dialog
+        showChangePasscodeDialog();
     }
 
     private void showChangePasscodeDialog() {
@@ -78,7 +79,7 @@ public class ChangePasscode extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    "http://192.168.1.4:5000/api/otp/send",
+                    "http://172.16.19.12:5000/api/otp/send",
                     params,
                     resp -> Toast.makeText(this, "OTP sent", Toast.LENGTH_SHORT).show(),
                     err -> Toast.makeText(this, "Failed to send OTP", Toast.LENGTH_SHORT).show()
@@ -94,7 +95,7 @@ public class ChangePasscode extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile).put("otp", otp);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    "http://192.168.1.4:5000/api/otp/verify",
+                    "http://172.16.19.12:5000/api/otp/verify",
                     params,
                     response -> {
                         Toast.makeText(this, "OTP Verified", Toast.LENGTH_SHORT).show();
@@ -142,7 +143,8 @@ public class ChangePasscode extends AppCompatActivity {
         try {
             JSONObject params = new JSONObject()
                     .put("mobile", mobile)
-                    .put("passcode", newPass);
+                    .put("passcode", newPass)
+                    .put("userID", userID);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,

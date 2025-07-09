@@ -25,10 +25,11 @@ public class SplashActivity extends AppCompatActivity {
                 handler.postDelayed(this, delay);
             } else {
                 handler.postDelayed(() -> {
-                    SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+                    // ✅ FIX: Use correct prefs
+                    SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                     boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
                     String mobile = prefs.getString("mobile", null);
-                    String userID = prefs.getString("userID", null); // ⬅️ Retrieve userID
+                    String userID = prefs.getString("userID", null); // Correct source
 
                     if (isLoggedIn && mobile != null && userID != null) {
                         startActivity(new Intent(SplashActivity.this, Login.class));
@@ -50,7 +51,7 @@ public class SplashActivity extends AppCompatActivity {
         appName = findViewById(R.id.appName);
         handler.postDelayed(typeRunnable, delay);
 
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);  // ✅ Changed here too
         long lockUntil = prefs.getLong("panicLockTimestamp", 0);
 
         if (System.currentTimeMillis() < lockUntil) {

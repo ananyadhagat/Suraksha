@@ -18,7 +18,7 @@ import org.json.JSONObject;
 
 public class TPINActivity extends AppCompatActivity {
 
-    String mobile;
+    String mobile, userID;
     String userUrl = "http://172.16.19.12:5000/api/user";
     String otpUrl = "http://172.16.19.12:5000/api/otp";
 
@@ -28,10 +28,11 @@ public class TPINActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         mobile = prefs.getString("mobile", null);
+        userID = prefs.getString("userID", null);
 
-        if (mobile == null) {
+        if (mobile == null || userID == null) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -145,7 +146,8 @@ public class TPINActivity extends AppCompatActivity {
         try {
             JSONObject params = new JSONObject()
                     .put("mobile", mobile)
-                    .put("tpin", tpin); // plain TPIN now
+                    .put("tpin", tpin)
+                    .put("userID", userID); // ✅ Add userID
 
             JsonObjectRequest rq = new JsonObjectRequest(
                     Request.Method.POST,

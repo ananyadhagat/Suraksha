@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 public class RiskAnalyzer {
     private static final String TAG = "RiskAnalyzer";
-    private static final String backendUrl = "http://172.16.19.12:5000/evaluate-risk";
+    private static final String backendUrl = "http://172.16.19.12:5001/evaluate-risk";
 
     public static void evaluateRisk(Context context, JSONObject behaviorVector) {
         JsonObjectRequest request = new JsonObjectRequest(

@@ -56,6 +56,12 @@ def calculate_risk_score(vector, baseline):
         "ScreenHoldTime": 3000.0
     }
 
+    # Detect mostly idle (zero) vector
+    total_features = len(vector)
+    zero_features = sum(1 for v in vector.values() if v == 0)
+    if zero_features / total_features >= 0.8:
+        return 5.0  # low risk if mostly idle
+
     distance = 0.0
     for key in vector.keys() & baseline.keys():
         diff = (vector[key] - baseline[key]) / scales.get(key, 1.0)

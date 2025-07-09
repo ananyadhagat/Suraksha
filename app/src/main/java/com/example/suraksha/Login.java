@@ -50,7 +50,8 @@ public class Login extends AppCompatActivity {
         greetingText = findViewById(R.id.greetingText);
         tvForgot = findViewById(R.id.tvForgotPasscode);
 
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        // 🔁 Updated to fetch from UserPrefs instead of SurakshaPrefs
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         mobile = prefs.getString("mobile", null);
         userID = prefs.getString("userID", null);
 
@@ -67,7 +68,7 @@ public class Login extends AppCompatActivity {
             String enteredPass = getBoxValue(passcodeBoxes);
 
             if (enteredPass.length() == BOX_COUNT) {
-                SharedPreferences sp = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+                SharedPreferences sp = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                 int selectedGesture = sp.getInt("selectedGesture", 0); // 1 or 2
 
                 if (selectedGesture == 1 && PanicGesture1.isLoginPanicPin(enteredPass, mobile)) {
@@ -75,7 +76,7 @@ public class Login extends AppCompatActivity {
                 } else if (selectedGesture == 2 && PanicGesture2.isLoginPanicPin(enteredPass, mobile)) {
                     goToFakeHomeWithServerDownDialog();
                 } else {
-                    verifyPasscode(userID, enteredPass); // use userID
+                    verifyPasscode(userID, enteredPass); // ✅ use userID
                 }
 
             } else {

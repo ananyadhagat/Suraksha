@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -16,6 +18,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 
 public class Customize extends AppCompatActivity {
@@ -23,20 +27,50 @@ public class Customize extends AppCompatActivity {
     private HashMap<String, SelectableCardView> mediumOptions = new HashMap<>();
     private SelectableCardView highRiskCard;
 
+    private BehaviorMonitor behaviorMonitor;
+    private String userID;
+    private final Handler behaviorHandler = new Handler();
+    private final Runnable sendBehaviorRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (behaviorMonitor != null) {
+                JSONObject behaviorVector = behaviorMonitor.getBehaviorVectorAsJSON(userID);
+                if (behaviorVector != null) {
+                    Log.d("Customize", "Behavior Vector: " + behaviorVector.toString());
+                    // You can send this to backend using Volley if needed
+                }
+            }
+            behaviorHandler.postDelayed(this, 20000);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customize);
 
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        userID = prefs.getString("userID", null);
+        if (userID == null) {
+            Toast.makeText(this, "User ID not found. Please login again.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        behaviorMonitor = new BehaviorMonitor(this);
+        behaviorMonitor.startMonitoring();
+        behaviorMonitor.trackTouch(findViewById(android.R.id.content));
+        behaviorHandler.post(sendBehaviorRunnable);
+
         GridLayout mediumGrid = findViewById(R.id.mediumGrid);
         LinearLayout highRiskContainer = findViewById(R.id.highRiskContainer);
-        SharedPreferences prefs = getSharedPreferences("RiskPrefs", MODE_PRIVATE);
+        SharedPreferences riskPrefs = getSharedPreferences("RiskPrefs", MODE_PRIVATE);
 
         // Add medium cards
-        addMediumCard(mediumGrid, "Ask Passcode", R.drawable.ic_lock, "medium_passcode", prefs);
-        addMediumCard(mediumGrid, "Ask Biometric", R.drawable.ic_fingerprint, "medium_biometric", prefs);
-        addMediumCard(mediumGrid, "Ask Typing Phrase", R.drawable.ic_keyboard, "medium_phrase", prefs);
-        addMediumCard(mediumGrid, "Ask Gesture", R.drawable.ic_gesture, "medium_gesture", prefs);
+        addMediumCard(mediumGrid, "Ask Passcode", R.drawable.ic_lock, "medium_passcode", riskPrefs);
+        addMediumCard(mediumGrid, "Ask Biometric", R.drawable.ic_fingerprint, "medium_biometric", riskPrefs);
+        addMediumCard(mediumGrid, "Ask Typing Phrase", R.drawable.ic_keyboard, "medium_phrase", riskPrefs);
+        addMediumCard(mediumGrid, "Ask Gesture", R.drawable.ic_gesture, "medium_gesture", riskPrefs);
 
         // Add high risk card (single selectable)
         highRiskCard = new SelectableCardView(this, true);
@@ -78,7 +112,15 @@ public class Customize extends AppCompatActivity {
         finish();
     }
 
-    // Custom card view class
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (behaviorMonitor != null) {
+            behaviorMonitor.stopMonitoring();
+        }
+        behaviorHandler.removeCallbacks(sendBehaviorRunnable);
+    }
+
     class SelectableCardView extends FrameLayout {
 
         private LinearLayout container;
@@ -92,9 +134,8 @@ public class Customize extends AppCompatActivity {
             super(context);
             this.singleSelect = singleSelect;
 
-            // Card background styling
             GradientDrawable bg = new GradientDrawable();
-            bg.setColor(Color.parseColor("#E3F2FD"));  // Light blue
+            bg.setColor(Color.parseColor("#E3F2FD"));
             bg.setCornerRadius(24);
             bg.setStroke(2, Color.parseColor("#90CAF9"));
             setBackground(bg);
@@ -103,21 +144,18 @@ public class Customize extends AppCompatActivity {
             setClickable(true);
             setFocusable(true);
 
-            // Container layout
             container = new LinearLayout(context);
             container.setOrientation(LinearLayout.VERTICAL);
-            container.setGravity(Gravity.CENTER); // Center icon + title
+            container.setGravity(Gravity.CENTER);
             LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             container.setLayoutParams(layoutParams);
 
-            // Icon
             iconView = new ImageView(context);
             LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(100, 100);
             iconView.setLayoutParams(iconParams);
-            iconView.setColorFilter(Color.parseColor("#0D47A1"));  // Dark blue
+            iconView.setColorFilter(Color.parseColor("#0D47A1"));
             container.addView(iconView);
 
-            // Title
             titleView = new TextView(context);
             titleView.setTextColor(Color.BLACK);
             titleView.setTextSize(16);
@@ -127,7 +165,6 @@ public class Customize extends AppCompatActivity {
 
             addView(container);
 
-            // Tick mark (top-right)
             tickView = new ImageView(context);
             tickView.setImageResource(R.drawable.ic_check);
             tickView.setColorFilter(Color.parseColor("#0D47A1"));
@@ -140,7 +177,6 @@ public class Customize extends AppCompatActivity {
 
             addView(tickView);
 
-            // Click to toggle selection
             setOnClickListener(v -> {
                 if (singleSelect) {
                     setChecked(true);
@@ -149,7 +185,6 @@ public class Customize extends AppCompatActivity {
                 }
             });
 
-            // Adjust box size
             int size = getResources().getDisplayMetrics().widthPixels / 2 - 130;
 
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();

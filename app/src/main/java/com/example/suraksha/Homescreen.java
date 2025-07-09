@@ -53,7 +53,7 @@ public class Homescreen extends AppCompatActivity {
         fullName = findViewById(R.id.fullName);
         phoneNumber = findViewById(R.id.phoneNumber);
 
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         userID = prefs.getString("userID", null);
 
         fetchUserDataFromDatabase();
@@ -140,7 +140,7 @@ public class Homescreen extends AppCompatActivity {
     }
 
     private void fetchUserDataFromDatabase() {
-        SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String mobile = prefs.getString("mobile", null);
         if (mobile == null) return;
 
@@ -244,7 +244,7 @@ public class Homescreen extends AppCompatActivity {
                 .setMessage("Logging out due to technical issues.")
                 .setCancelable(false)
                 .setPositiveButton("OK", (dialog, which) -> {
-                    getSharedPreferences("SurakshaPrefs", MODE_PRIVATE).edit().clear().apply();
+                    getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().clear().apply();
                     finish();
                 }).show();
     }
@@ -264,7 +264,7 @@ public class Homescreen extends AppCompatActivity {
         btnNo.setOnClickListener(v -> dialog.dismiss());
 
         btnYes.setOnClickListener(v -> {
-            SharedPreferences prefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
             prefs.edit().clear().apply();
             dialog.dismiss();
             finishAffinity();
