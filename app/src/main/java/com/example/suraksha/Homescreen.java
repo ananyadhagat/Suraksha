@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -12,7 +11,6 @@ import android.view.View;
 import android.widget.*;
 import android.graphics.Color;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.android.volley.Request;
@@ -21,22 +19,14 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
-import static com.example.suraksha.utils.Constants.BASE_IP;
 import static com.example.suraksha.utils.Constants.USER_API;
-import static com.example.suraksha.utils.Constants.RISK_API;
 
-public class Homescreen extends AppCompatActivity {
+public class Homescreen extends BaseActivity {
 
     GridLayout payGrid, upiGrid, privacyGrid;
     DrawerLayout drawerLayout;
     TextView userInitials, fullName, phoneNumber;
     String userUrl = USER_API;
-    String riskUrl = RISK_API;
-
-    private BehaviorMonitor behaviorMonitor;
-    private Handler riskHandler;
-    private Runnable riskRunnable;
-    private String userID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +48,7 @@ public class Homescreen extends AppCompatActivity {
         phoneNumber = findViewById(R.id.phoneNumber);
 
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        userID = prefs.getString("userID", null);
+        String userID = prefs.getString("userID", null);
 
         fetchUserDataFromDatabase();
 
@@ -101,46 +91,6 @@ public class Homescreen extends AppCompatActivity {
         addIconToGrid(privacyGrid, R.drawable.ic_tpin, "Set TPIN");
         addIconToGrid(privacyGrid, R.drawable.ic_location, "Enable Location");
         addIconToGrid(privacyGrid, R.drawable.ic_help, "Help & Support");
-
-        behaviorMonitor = new BehaviorMonitor(this);
-        behaviorMonitor.startMonitoring();
-        behaviorMonitor.trackTouch(findViewById(android.R.id.content));
-
-        riskHandler = new Handler();
-        riskRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (behaviorMonitor != null && userID != null) {
-                    JSONObject vector = behaviorMonitor.getBehaviorVectorAsJSON(userID);
-                    if (vector != null) {
-                        JsonObjectRequest riskRequest = new JsonObjectRequest(
-                                Request.Method.POST,
-                                riskUrl,
-                                vector,
-                                response -> {
-                                    double riskScore = response.optDouble("risk_score", -1);
-                                    Log.d("RiskScore", "\uD83D\uDCCA Risk score for userID=" + userID + " is: " + riskScore);
-                                },
-                                error -> Log.e("RiskEvalError", error.toString())
-                        );
-                        Volley.newRequestQueue(Homescreen.this).add(riskRequest);
-                    }
-                }
-                riskHandler.postDelayed(this, 20000);
-            }
-        };
-        riskHandler.postDelayed(riskRunnable, 20000);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (behaviorMonitor != null) {
-            behaviorMonitor.stopMonitoring();
-        }
-        if (riskHandler != null) {
-            riskHandler.removeCallbacks(riskRunnable);
-        }
     }
 
     private void fetchUserDataFromDatabase() {
