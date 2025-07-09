@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const ResetLog = require('../models/ResetLog'); // ✅ For tracking reset attempts
+const ResetLog = require('../models/ResetLog');
 const bcrypt = require('bcrypt');
 
 const SALT_ROUNDS = 10;
@@ -35,16 +35,16 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// ✅ Login: verify hashed passcode
+// ✅ Login: verify hashed passcode using userID
 router.post('/login', async (req, res) => {
-    const { mobile, passcode } = req.body;
+    const { userID, passcode } = req.body;
 
-    if (!mobile || !passcode) {
-        return res.status(400).json({ message: 'Mobile and passcode are required' });
+    if (!userID || !passcode) {
+        return res.status(400).json({ message: 'UserID and passcode are required' });
     }
 
     try {
-        const user = await User.findOne({ mobile });
+        const user = await User.findById(userID);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -54,7 +54,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid passcode' });
         }
 
-        res.json({ message: 'Login successful' , userId: user._id });
+        res.json({ message: 'Login successful', userId: user._id });
     } catch (err) {
         console.error('Login Error:', err);
         res.status(500).json({ message: 'Internal server error' });
@@ -92,7 +92,7 @@ router.post('/reset-check', async (req, res) => {
 
     try {
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // reset time to 00:00:00
+        today.setHours(0, 0, 0, 0);
 
         const attemptsToday = await ResetLog.countDocuments({
             mobile,
@@ -111,7 +111,8 @@ router.post('/reset-check', async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 });
-// ✅ Set or Update TPIN (hashes on backend now)
+
+// ✅ Set or Update TPIN
 router.post('/set_tpin', async (req, res) => {
     const { mobile, tpin } = req.body;
 
@@ -136,7 +137,7 @@ router.post('/set_tpin', async (req, res) => {
     }
 });
 
-// ✅ Verify TPIN (now works with bcrypt.compare)
+// ✅ Verify TPIN
 router.post('/verify-tpin', async (req, res) => {
     const { mobile, tpin } = req.body;
 
@@ -158,7 +159,4 @@ router.post('/verify-tpin', async (req, res) => {
     }
 });
 
-
-
 module.exports = router;
-
