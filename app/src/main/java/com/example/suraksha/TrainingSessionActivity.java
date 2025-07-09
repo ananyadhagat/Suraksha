@@ -29,6 +29,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.suraksha.utils.Constants.BASE_IP;
+
 public class TrainingSessionActivity extends Activity implements SensorEventListener {
 
     String[] trainingSentences = {
@@ -211,7 +213,7 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
             e.printStackTrace();
         }
 
-        String url = "http://172.16.19.12:5001/upload-training-batch";
+        String url = BASE_IP + ":5001/upload-training-batch"; // port intact
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, finalObject,
                 response -> {
                     Toast.makeText(this, "✅ Training data sent!", Toast.LENGTH_SHORT).show();
@@ -225,7 +227,7 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
     }
 
     void triggerMLModelTraining() {
-        String url = "http://172.16.19.12:5001/train-hybrid-model";
+        String url = BASE_IP + ":5001/train-hybrid-model"; // port intact
 
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {

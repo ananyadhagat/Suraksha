@@ -21,13 +21,17 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import static com.example.suraksha.utils.Constants.BASE_IP;
+import static com.example.suraksha.utils.Constants.USER_API;
+import static com.example.suraksha.utils.Constants.RISK_API;
+
 public class Homescreen extends AppCompatActivity {
 
     GridLayout payGrid, upiGrid, privacyGrid;
     DrawerLayout drawerLayout;
     TextView userInitials, fullName, phoneNumber;
-    String userUrl = "http://172.16.19.12:5000/api/user";
-    String riskUrl = "http://172.16.19.12:5001/evaluate-risk";
+    String userUrl = USER_API;
+    String riskUrl = RISK_API;
 
     private BehaviorMonitor behaviorMonitor;
     private Handler riskHandler;
@@ -115,7 +119,7 @@ public class Homescreen extends AppCompatActivity {
                                 vector,
                                 response -> {
                                     double riskScore = response.optDouble("risk_score", -1);
-                                    Log.d("RiskScore", "📊 Risk score for userID=" + userID + " is: " + riskScore);
+                                    Log.d("RiskScore", "\uD83D\uDCCA Risk score for userID=" + userID + " is: " + riskScore);
                                 },
                                 error -> Log.e("RiskEvalError", error.toString())
                         );

@@ -2,18 +2,22 @@ package com.example.suraksha;
 
 import android.content.Context;
 import android.util.Log;
-import com.android.volley.*;
-import com.android.volley.toolbox.*;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONObject;
+
+import static com.example.suraksha.utils.Constants.RISK_API;
 
 public class RiskAnalyzer {
     private static final String TAG = "RiskAnalyzer";
-    private static final String backendUrl = "http://172.16.19.12:5001/evaluate-risk";
 
     public static void evaluateRisk(Context context, JSONObject behaviorVector) {
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.POST,
-                backendUrl,
+                RISK_API,
                 behaviorVector,
                 response -> {
                     double riskScore = response.optDouble("riskScore", -1);

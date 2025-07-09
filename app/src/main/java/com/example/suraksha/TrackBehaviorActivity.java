@@ -10,6 +10,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.suraksha.utils.Constants;  // Import Constants for future use
+
 public class TrackBehaviorActivity extends AppCompatActivity {
 
     private Switch trackingSwitch;

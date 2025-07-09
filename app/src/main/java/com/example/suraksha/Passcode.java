@@ -16,6 +16,9 @@ import org.json.JSONObject;
 
 import java.util.UUID;
 
+import static com.example.suraksha.utils.Constants.USER_API;
+import static com.example.suraksha.utils.Constants.BASE_IP;
+
 public class Passcode extends AppCompatActivity {
     LinearLayout passcodeLayout, otpLayout;
     Button btnProceed;
@@ -25,9 +28,7 @@ public class Passcode extends AppCompatActivity {
     final int BOX_COUNT = 6;
     String userID;
 
-    // URLs
-    String otpUrl = "http://172.16.19.12:5000/api/otp";
-    String userUrl = "http://172.16.19.12:5000/api/user";
+    String otpUrl = BASE_IP + ":5000/api/otp";
     boolean otpSent = false;
 
     @Override
@@ -148,7 +149,7 @@ public class Passcode extends AppCompatActivity {
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    userUrl + "/register",
+                    USER_API + "/register",
                     params,
                     response -> {
                         Toast.makeText(this, "🎉 Passcode saved!", Toast.LENGTH_SHORT).show();

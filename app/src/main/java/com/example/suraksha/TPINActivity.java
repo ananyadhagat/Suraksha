@@ -16,11 +16,14 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import static com.example.suraksha.utils.Constants.BASE_IP;
+import static com.example.suraksha.utils.Constants.USER_API;
+
 public class TPINActivity extends AppCompatActivity {
 
     String mobile, userID;
-    String userUrl = "http://172.16.19.12:5000/api/user";
-    String otpUrl = "http://172.16.19.12:5000/api/otp";
+    String userUrl = USER_API;
+    String otpUrl = BASE_IP + ":5000/api/otp";
 
     private BehaviorMonitor behaviorMonitor;
 
@@ -147,7 +150,7 @@ public class TPINActivity extends AppCompatActivity {
             JSONObject params = new JSONObject()
                     .put("mobile", mobile)
                     .put("tpin", tpin)
-                    .put("userID", userID); // ✅ Add userID
+                    .put("userID", userID);
 
             JsonObjectRequest rq = new JsonObjectRequest(
                     Request.Method.POST,

@@ -16,10 +16,12 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import static com.example.suraksha.utils.Constants.BASE_IP;
+
 public class ChangePasscode extends AppCompatActivity {
 
     String mobile, userID;
-    String userUrl = "http://172.16.19.12:5000/api/user";
+    String userUrl = BASE_IP + ":5000/api/user";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +81,7 @@ public class ChangePasscode extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    "http://172.16.19.12:5000/api/otp/send",
+                    BASE_IP + ":5000/api/otp/send",
                     params,
                     resp -> Toast.makeText(this, "OTP sent", Toast.LENGTH_SHORT).show(),
                     err -> Toast.makeText(this, "Failed to send OTP", Toast.LENGTH_SHORT).show()
@@ -95,7 +97,7 @@ public class ChangePasscode extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile).put("otp", otp);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    "http://172.16.19.12:5000/api/otp/verify",
+                    BASE_IP + ":5000/api/otp/verify",
                     params,
                     response -> {
                         Toast.makeText(this, "OTP Verified", Toast.LENGTH_SHORT).show();

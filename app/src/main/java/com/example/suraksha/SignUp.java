@@ -18,13 +18,15 @@ import org.json.JSONObject;
 
 import java.util.UUID;
 
+import static com.example.suraksha.utils.Constants.BASE_IP;
+
 public class SignUp extends AppCompatActivity {
     TextView headingText, subText, tvOtpMessage;
     LinearLayout otpBoxLayout;
     EditText editTextPhone, inputName;
     Button btnSendOtp, btnVerifyOtp;
     EditText[] otpBoxes;
-    String backendUrl = "http://172.16.19.12:5000/api/otp";
+    private static final String OTP_API = BASE_IP + ":5000/api/otp";
     final int OTP_BOX_COUNT = 6;
 
     @Override
@@ -119,7 +121,7 @@ public class SignUp extends AppCompatActivity {
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    backendUrl + "/send",
+                    OTP_API + "/send",
                     params,
                     response -> {
                         headingText.setText("Enter OTP");
@@ -161,12 +163,11 @@ public class SignUp extends AppCompatActivity {
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    backendUrl + "/verify",
+                    OTP_API + "/verify",
                     params,
                     response -> {
                         Toast.makeText(this, "✅ OTP Verified!", Toast.LENGTH_SHORT).show();
 
-                        // 👉 Generate and save UUID as userID
                         String userID = UUID.randomUUID().toString();
                         String name = inputName.getText().toString().trim();
 

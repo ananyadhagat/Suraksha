@@ -18,12 +18,13 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import static com.example.suraksha.utils.Constants.USER_API;
+
 public class SendMoney extends AppCompatActivity {
 
     private EditText editTextAC, editTextIFSC, editTextRecipient, editTextAmount, editTextMessage, editTextPIN;
     private Button btnSend;
     private String mobile, userID;
-    private final String tpinVerifyUrl = "http://172.16.19.12:5000/api/user/verify-tpin";
 
     private BehaviorMonitor behaviorMonitor;
 
@@ -39,7 +40,7 @@ public class SendMoney extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         mobile = prefs.getString("mobile", null);
-        userID = prefs.getString("userID", null); // ✅ Added for future behavioral tracking
+        userID = prefs.getString("userID", null);
 
         editTextAC = findViewById(R.id.editTextAC);
         editTextRecipient = findViewById(R.id.editTextRecipient);
@@ -56,7 +57,6 @@ public class SendMoney extends AppCompatActivity {
             PanicGesture2.handleTPINTapGesture2(editTextPIN, this);
         }
 
-        // Initialize and start behavior monitoring
         behaviorMonitor = new BehaviorMonitor(this);
         behaviorMonitor.trackTouch(findViewById(android.R.id.content));
         behaviorMonitor.attachToEditText(editTextAC);
@@ -98,7 +98,7 @@ public class SendMoney extends AppCompatActivity {
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    tpinVerifyUrl,
+                    USER_API + "/verify-tpin",
                     params,
                     response -> showSuccessDialog(amount, recipient),
                     error -> showFailureDialog()

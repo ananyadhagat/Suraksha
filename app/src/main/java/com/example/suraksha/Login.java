@@ -24,8 +24,9 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONObject;
 
 import java.util.Calendar;
-import java.util.UUID;
 import java.util.concurrent.Executor;
+
+import static com.example.suraksha.utils.Constants.USER_API;
 
 public class Login extends AppCompatActivity {
 
@@ -36,7 +37,6 @@ public class Login extends AppCompatActivity {
 
     final int BOX_COUNT = 6;
     String mobile, userID;
-    String userUrl = "http://172.16.19.12:5000/api/user";
     int resetAttempts = 0;
     final int MAX_RESETS = 3;
 
@@ -50,7 +50,6 @@ public class Login extends AppCompatActivity {
         greetingText = findViewById(R.id.greetingText);
         tvForgot = findViewById(R.id.tvForgotPasscode);
 
-        // 🔁 Updated to fetch from UserPrefs instead of SurakshaPrefs
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         mobile = prefs.getString("mobile", null);
         userID = prefs.getString("userID", null);
@@ -69,14 +68,14 @@ public class Login extends AppCompatActivity {
 
             if (enteredPass.length() == BOX_COUNT) {
                 SharedPreferences sp = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                int selectedGesture = sp.getInt("selectedGesture", 0); // 1 or 2
+                int selectedGesture = sp.getInt("selectedGesture", 0);
 
                 if (selectedGesture == 1 && PanicGesture1.isLoginPanicPin(enteredPass, mobile)) {
                     goToFakeHomeWithServerDownDialog();
                 } else if (selectedGesture == 2 && PanicGesture2.isLoginPanicPin(enteredPass, mobile)) {
                     goToFakeHomeWithServerDownDialog();
                 } else {
-                    verifyPasscode(userID, enteredPass); // ✅ use userID
+                    verifyPasscode(userID, enteredPass);
                 }
 
             } else {
@@ -126,7 +125,7 @@ public class Login extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    userUrl + "/getName",
+                    USER_API + "/getName",
                     params,
                     response -> {
                         String name = response.optString("name", "User");
@@ -154,7 +153,7 @@ public class Login extends AppCompatActivity {
             JSONObject params = new JSONObject().put("userID", userID).put("passcode", passcode);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    userUrl + "/login",
+                    USER_API + "/login",
                     params,
                     response -> {
                         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
@@ -176,7 +175,7 @@ public class Login extends AppCompatActivity {
     private void goToFakeHomeWithServerDownDialog() {
         PanicUtils.triggerPanicLock(this);
         Intent i = new Intent(Login.this, FakeHomescreen.class);
-        new Handler().postDelayed(() -> showServerDownDialog(), 1000);
+        new Handler().postDelayed(this::showServerDownDialog, 1000);
     }
 
     private void showServerDownDialog() {
@@ -270,7 +269,7 @@ public class Login extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    "http://192.168.1.4:5000/api/otp/send",
+                    USER_API + "/otp/send",
                     params,
                     resp -> Toast.makeText(this, "OTP sent", Toast.LENGTH_SHORT).show(),
                     err -> Toast.makeText(this, "Failed sending OTP", Toast.LENGTH_SHORT).show()
@@ -322,7 +321,7 @@ public class Login extends AppCompatActivity {
             JSONObject p = new JSONObject().put("mobile", mobile).put("otp", otp);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    "http://192.168.1.4:5000/api/otp/verify",
+                    USER_API + "/otp/verify",
                     p,
                     resp -> {
                         Toast.makeText(this, "OTP Verified", Toast.LENGTH_SHORT).show();
@@ -348,7 +347,7 @@ public class Login extends AppCompatActivity {
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    userUrl + "/register",
+                    USER_API + "/register",
                     params,
                     response -> {
                         Toast.makeText(this, "Passcode reset! Please login.", Toast.LENGTH_LONG).show();
