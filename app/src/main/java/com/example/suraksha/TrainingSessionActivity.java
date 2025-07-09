@@ -1,200 +1,258 @@
 package com.example.suraksha;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 public class TrainingSessionActivity extends Activity implements SensorEventListener {
 
-    EditText etTypingArea;
-    View gestureZone;
-    Button btnSubmit;
+    String[] trainingSentences = {
+            "The quick brown fox jumps over the lazy dog.",
+            "Security is more about behavior than passwords.",
+            "My typing speed is unique like a fingerprint.",
+            "I bank safely from my mobile every day."
+    };
 
-    long sessionStartTime;
-    long lastKeyTime;
-    long keyPressTime;
-    int totalChars = 0;
-    int backspaceCount = 0;
+    int currentStep = 0;
+    List<JSONObject> trainingDataList = new ArrayList<>();
 
-    ArrayList<Long> dwellTimes = new ArrayList<>();
+    TextView sentenceView, stepView;
+    EditText inputField;
+    Button nextBtn;
+
+    long lastKeyDownTime = 0;
+    long lastKeyUpTime = 0;
+    long lastTouchTime = 0;
+
+    ArrayList<Long> holdDurations = new ArrayList<>();
     ArrayList<Long> flightTimes = new ArrayList<>();
+    ArrayList<Float> pressures = new ArrayList<>();
+    ArrayList<Float> sizes = new ArrayList<>();
+    ArrayList<Long> interKeyDelays = new ArrayList<>();
 
-    float totalTapPressure = 0;
-    int tapCount = 0;
-    float pitch = 0f;
-    String swipeDirection = "None";
+    long typingStartTime = 0;
+    long typingEndTime = 0;
+    long screenHoldStartTime = 0;
+    long screenHoldEndTime = 0;
 
-    GestureDetector gestureDetector;
     SensorManager sensorManager;
-    Sensor rotationSensor;
+    Sensor accelSensor, gyroSensor;
+    ArrayList<Float> accelValues = new ArrayList<>();
+    ArrayList<Float> gyroValues = new ArrayList<>();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training_session);
 
-        etTypingArea = findViewById(R.id.etTypingArea);
-        gestureZone = findViewById(R.id.gestureZone);
-        btnSubmit = findViewById(R.id.btnSubmitTraining);
-        sessionStartTime = System.currentTimeMillis();
+        sentenceView = findViewById(R.id.sentence_to_type);
+        inputField = findViewById(R.id.user_input);
+        nextBtn = findViewById(R.id.next_button);
+        stepView = findViewById(R.id.session_progress);
 
-        // ✅ Initialize lists
-        dwellTimes = new ArrayList<>();
-        flightTimes = new ArrayList<>();
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-        etTypingArea.setOnKeyListener((v, keyCode, event) -> {
+        sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+        updateScreen();
+
+        inputField.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                keyPressTime = System.currentTimeMillis();
-                if (keyCode == 67) backspaceCount++;
-            }
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                long releaseTime = System.currentTimeMillis();
-                long dwell = releaseTime - keyPressTime;
-                dwellTimes.add(dwell);
-
-                if (lastKeyTime != 0) {
-                    long flight = keyPressTime - lastKeyTime;
-                    flightTimes.add(flight);
+                long now = System.currentTimeMillis();
+                pressures.add(event.getPressure());
+                sizes.add(event.getSize());
+                if (lastTouchTime != 0) {
+                    interKeyDelays.add(now - lastTouchTime);
                 }
-
-                lastKeyTime = releaseTime;
-                totalChars++;
+                lastTouchTime = now;
             }
             return false;
         });
 
+        inputField.setOnKeyListener((v, keyCode, event) -> {
+            long now = System.currentTimeMillis();
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    lastKeyDownTime = now;
+                    if (lastKeyUpTime != 0) {
+                        flightTimes.add(now - lastKeyUpTime);
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    if (lastKeyDownTime != 0) {
+                        holdDurations.add(now - lastKeyDownTime);
+                    }
+                    lastKeyUpTime = now;
+                    break;
+            }
+            return false;
+        });
 
+        nextBtn.setOnClickListener(v -> {
+            if (currentStep >= trainingSentences.length) return;
 
+            String typed = inputField.getText().toString().trim();
+            String expected = trainingSentences[currentStep];
 
-    gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                float diffX = e2.getX() - e1.getX();
-                float diffY = e2.getY() - e1.getY();
-                swipeDirection = (Math.abs(diffX) > Math.abs(diffY)) ? (diffX > 0 ? "Right" : "Left") : (diffY > 0 ? "Down" : "Up");
-                return true;
+            if (!typed.equals(expected)) {
+                Toast.makeText(this, "Typed sentence doesn't match!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            typingEndTime = System.currentTimeMillis();
+            screenHoldEndTime = System.currentTimeMillis();
+
+            long typingDurationMillis = typingEndTime - typingStartTime;
+            double typingSpeed = (typed.length() / (typingDurationMillis / 1000.0));
+            long screenHoldTime = screenHoldEndTime - screenHoldStartTime;
+
+            JSONObject session = new JSONObject();
+            try {
+                session.put("sentence", expected);
+                session.put("typed_text", typed);
+                session.put("hold_times", new JSONArray(holdDurations));
+                session.put("flight_times", new JSONArray(flightTimes));
+                session.put("pressures", new JSONArray(pressures));
+                session.put("touch_sizes", new JSONArray(sizes));
+                session.put("inter_key_delays", new JSONArray(interKeyDelays));
+                session.put("accel_pattern", new JSONArray(accelValues));
+                session.put("gyro_pattern", new JSONArray(gyroValues));
+                session.put("avg_typing_speed", typingSpeed);
+                session.put("screen_hold_time", screenHoldTime);
+
+                trainingDataList.add(session);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            currentStep++;
+            resetBehavioralArrays();
+
+            if (currentStep < trainingSentences.length) {
+                updateScreen();
+            } else {
+                sendTrainingDataToBackend();
             }
         });
+    }
 
-        gestureZone.setOnTouchListener((v, event) -> {
-            tapCount++;
-            totalTapPressure += event.getPressure();
-            gestureDetector.onTouchEvent(event);
-            return true;
-        });
+    void updateScreen() {
+        sentenceView.setText(trainingSentences[currentStep]);
+        inputField.setText("");
+        stepView.setText("Step " + (currentStep + 1) + " of " + trainingSentences.length);
+        typingStartTime = System.currentTimeMillis();
+        screenHoldStartTime = System.currentTimeMillis();
+    }
 
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    void resetBehavioralArrays() {
+        holdDurations.clear();
+        flightTimes.clear();
+        pressures.clear();
+        sizes.clear();
+        interKeyDelays.clear();
+        accelValues.clear();
+        gyroValues.clear();
+        lastKeyDownTime = 0;
+        lastKeyUpTime = 0;
+        lastTouchTime = 0;
+        typingStartTime = 0;
+        typingEndTime = 0;
+        screenHoldStartTime = 0;
+        screenHoldEndTime = 0;
+    }
 
-        btnSubmit.setOnClickListener(v -> finishTraining() );
+    void sendTrainingDataToBackend() {
+        JSONObject finalObject = new JSONObject();
+        JSONArray batch = new JSONArray(trainingDataList);
+        try {
+            finalObject.put("userID", "user_01");
+            finalObject.put("training_batch", batch);
+            finalObject.put("label", 1);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
+        String url = "http://172.16.19.12:5001/upload-training-batch";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, finalObject,
+                response -> {
+                    Toast.makeText(this, "✅ Training data sent!", Toast.LENGTH_SHORT).show();
+                    triggerMLModelTraining();
+                },
+                error -> Toast.makeText(this, "❌ Error: " + error.toString(), Toast.LENGTH_SHORT).show()
+        );
 
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(request);
+    }
 
+    void triggerMLModelTraining() {
+        String url = "http://172.16.19.12:5001/train-hybrid-model";
+
+        StringRequest request = new StringRequest(Request.Method.POST, url,
+                response -> {
+                    Toast.makeText(this, "✅ ML Model Trained!", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(TrainingSessionActivity.this, Homescreen.class));
+                    finish();
+                },
+                error -> Toast.makeText(this, "❌ ML Error: " + error.toString(), Toast.LENGTH_SHORT).show()
+        );
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(request);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float[] rotationMatrix = new float[9];
-        SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
-        float[] orientation = new float[3];
-        SensorManager.getOrientation(rotationMatrix, orientation);
-        pitch = (float) Math.toDegrees(orientation[1]);
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            float totalAccel = (float) Math.sqrt(
+                    event.values[0] * event.values[0] +
+                            event.values[1] * event.values[1] +
+                            event.values[2] * event.values[2]);
+            accelValues.add(totalAccel);
+        }
+
+        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            float totalGyro = (float) Math.sqrt(
+                    event.values[0] * event.values[0] +
+                            event.values[1] * event.values[1] +
+                            event.values[2] * event.values[2]);
+            gyroValues.add(totalGyro);
+        }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
-    private void finishTraining() {
-
-            long sessionTime = System.currentTimeMillis() - sessionStartTime;
-
-            double avgDwell = dwellTimes.stream().mapToLong(i -> i).average().orElse(0);
-            double avgFlight = flightTimes.stream().mapToLong(i -> i).average().orElse(0);
-            double typingSpeed = sessionTime / (double) Math.max(totalChars, 1);
-            double avgPressure = (tapCount > 0) ? totalTapPressure / tapCount : 0;
-
-            try {
-                JSONObject behavior = new JSONObject();
-                behavior.put("typingSpeed", Double.isNaN(typingSpeed) ? 0 : typingSpeed);
-                behavior.put("dwellTime", Double.isNaN(avgDwell) ? 0 : avgDwell);
-                behavior.put("flightTime", Double.isNaN(avgFlight) ? 0 : avgFlight);
-                behavior.put("backspaceCount", backspaceCount);
-                behavior.put("tapPressure", Double.isNaN(avgPressure) ? 0 : avgPressure);
-                behavior.put("swipeDirection", swipeDirection != null ? swipeDirection : "None");
-                behavior.put("tiltAngle", Double.isNaN(pitch) ? 0 : pitch);
-                behavior.put("screenHoldTime", sessionTime / 1000);
-
-                // ✅ Show local confirmation
-                Toast.makeText(this, "Captured! Sending to backend...", Toast.LENGTH_SHORT).show();
-                Log.d("BEHAVIOR_JSON", behavior.toString());
-
-                new Thread(() -> {
-                    HttpURLConnection conn = null;
-                    try {
-                        URL url = new URL("http://192.168.29.36:5000/api/train-behavior"); // ✅ Your Flask IP
-                        conn = (HttpURLConnection) url.openConnection();
-                        conn.setRequestMethod("POST");
-                        conn.setRequestProperty("Content-Type", "application/json; utf-8");
-                        conn.setRequestProperty("Accept", "application/json");
-                        conn.setDoOutput(true);
-
-                        OutputStream os = conn.getOutputStream();
-                        byte[] input = behavior.toString().getBytes("utf-8");
-                        os.write(input, 0, input.length);
-                        os.flush();
-                        os.close();
-
-                        int responseCode = conn.getResponseCode();
-                        Log.d("FLASK_RESPONSE_CODE", String.valueOf(responseCode));
-
-                        if (responseCode == 200) {
-                            runOnUiThread(() ->
-                                    Toast.makeText(TrainingSessionActivity.this, "✅ Data sent to Flask!", Toast.LENGTH_SHORT).show()
-                            );
-                        } else {
-                            runOnUiThread(() ->
-                                    Toast.makeText(TrainingSessionActivity.this, "❌ Server Error: " + responseCode, Toast.LENGTH_LONG).show()
-                            );
-                            Log.e("SERVER_ERROR", "Response code: " + responseCode);
-                        }
-
-                    } catch (Exception e) {
-                        runOnUiThread(() ->
-                                Toast.makeText(TrainingSessionActivity.this, "❌ Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                        );
-                        Log.e("NETWORK_ERROR", e.toString());
-
-                    } finally {
-                        if (conn != null) conn.disconnect();
-                    }
-                }).start();
-
-            } catch (Exception e) {
-                Toast.makeText(this, "❌ JSON error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.e("JSON_ERROR", e.toString());
-            }
-
-            // ✅ Stop sensors
-            sensorManager.unregisterListener(this);
-            finish();
-        }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        sensorManager.unregisterListener(this);
     }
-
+}
