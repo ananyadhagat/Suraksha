@@ -271,5 +271,19 @@ Surakshak-Hackorbit/
 
 ---
 
-
-
+Full functional code and corrected code : 
+Login and forgot passcode are working
+Changes are made in Login.java,userRoutes.js,ChoosePanic.java 
+in ChoosePanic.java the a;ert box is removed and its code is below fo future use if needed : 
+private void showLockAlert() {
+        new AlertDialog.Builder(this)
+                .setTitle("⚠ Attention")
+                .setMessage("As you proceed, you cannot choose another panic gesture.")
+                .setCancelable(false)
+                .setPositiveButton("OK", null)
+                .show();
+    }
+and till now reauthentication screen is not integrated it is uploaded for code functionality backup
+and on cloning if gradle syncing or build is not happening properly then change the below files with your previous folder file data
+build.gradle.kts
+then libs.versions.toml in gradle folder and then resync and rebuild 
