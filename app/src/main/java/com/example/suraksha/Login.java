@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import java.util.Calendar;
 import java.util.concurrent.Executor;
 
+import static com.example.suraksha.utils.Constants.BASE_IP;
 import static com.example.suraksha.utils.Constants.USER_API;
 
 public class Login extends AppCompatActivity {
@@ -67,7 +68,7 @@ public class Login extends AppCompatActivity {
             String enteredPass = getBoxValue(passcodeBoxes);
 
             if (enteredPass.length() == BOX_COUNT) {
-                SharedPreferences sp = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                SharedPreferences sp = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
                 int selectedGesture = sp.getInt("selectedGesture", 0);
 
                 if (selectedGesture == 1 && PanicGesture1.isLoginPanicPin(enteredPass, mobile)) {
@@ -75,7 +76,7 @@ public class Login extends AppCompatActivity {
                 } else if (selectedGesture == 2 && PanicGesture2.isLoginPanicPin(enteredPass, mobile)) {
                     goToFakeHomeWithServerDownDialog();
                 } else {
-                    verifyPasscode(userID, enteredPass);
+                    verifyPasscode(mobile, enteredPass);
                 }
 
             } else {
@@ -148,12 +149,12 @@ public class Login extends AppCompatActivity {
         else return "Good Evening";
     }
 
-    private void verifyPasscode(String userID, String passcode) {
+    private void verifyPasscode(String mobile, String passcode) {
         try {
-            JSONObject params = new JSONObject().put("userID", userID).put("passcode", passcode);
+            JSONObject params = new JSONObject().put("mobile", mobile).put("passcode", passcode);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    USER_API + "/login",
+                    BASE_IP + ":5000/api/user/login",
                     params,
                     response -> {
                         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
@@ -269,7 +270,8 @@ public class Login extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    USER_API + "/otp/send",
+                    BASE_IP + ":5000/api/otp/send",
+
                     params,
                     resp -> Toast.makeText(this, "OTP sent", Toast.LENGTH_SHORT).show(),
                     err -> Toast.makeText(this, "Failed sending OTP", Toast.LENGTH_SHORT).show()
@@ -321,7 +323,8 @@ public class Login extends AppCompatActivity {
             JSONObject p = new JSONObject().put("mobile", mobile).put("otp", otp);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    USER_API + "/otp/verify",
+                    BASE_IP + ":5000/api/otp/verify",
+
                     p,
                     resp -> {
                         Toast.makeText(this, "OTP Verified", Toast.LENGTH_SHORT).show();

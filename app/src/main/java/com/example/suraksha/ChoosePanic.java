@@ -36,7 +36,6 @@ public class ChoosePanic extends AppCompatActivity {
             if (isChecked) {
                 if (!selectionLocked) {
                     gesture2CheckBox.setChecked(false);
-                    showLockAlert();
                     selectionLocked = true;
                 } else {
                     gesture1CheckBox.setChecked(true);
@@ -49,7 +48,6 @@ public class ChoosePanic extends AppCompatActivity {
             if (isChecked) {
                 if (!selectionLocked) {
                     gesture1CheckBox.setChecked(false);
-                    showLockAlert();
                     selectionLocked = true;
                 } else {
                     gesture2CheckBox.setChecked(true);
@@ -76,15 +74,6 @@ public class ChoosePanic extends AppCompatActivity {
         });
 
         dialog.show();
-    }
-
-    private void showLockAlert() {
-        new AlertDialog.Builder(this)
-                .setTitle("⚠️ Attention")
-                .setMessage("As you proceed, you cannot choose another panic gesture.")
-                .setCancelable(false)
-                .setPositiveButton("OK", null)
-                .show();
     }
 
     private void showGestureDetailsDialog(int selectedGesture) {

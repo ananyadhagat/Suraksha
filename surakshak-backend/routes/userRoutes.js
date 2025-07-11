@@ -34,17 +34,19 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
-// ✅ Login: verify hashed passcode using userID
+// ✅ Login: verify hashed passcode using either userID or mobile
 router.post('/login', async (req, res) => {
-    const { userID, passcode } = req.body;
+    const { userID, mobile, passcode } = req.body;
 
-    if (!userID || !passcode) {
-        return res.status(400).json({ message: 'UserID and passcode are required' });
+    if ((!userID && !mobile) || !passcode) {
+        return res.status(400).json({ message: 'UserID or mobile and passcode are required' });
     }
 
     try {
-        const user = await User.findById(userID);
+        const user = userID
+            ? await User.findById(userID)
+            : await User.findOne({ mobile });
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -60,6 +62,7 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 // ✅ Get user name
 router.post('/getName', async (req, res) => {
