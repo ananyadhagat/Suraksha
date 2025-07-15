@@ -186,6 +186,16 @@ public class Homescreen extends BaseActivity {
                 case "Set TPIN":
                     startActivity(new Intent(this, TPINActivity.class));
                     break;
+                case "Help & Support":
+                    Intent mediumIntent = new Intent(this, ReauthenticationActivity.class);
+                    mediumIntent.putExtra("risk_level", "medium");
+                    startActivity(mediumIntent);
+                    break;
+                case "Enable Location":
+                    Intent highIntent = new Intent(this, ReauthenticationActivity.class);
+                    highIntent.putExtra("risk_level", "high");
+                    startActivity(highIntent);
+                    break;
             }
         });
 

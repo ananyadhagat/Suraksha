@@ -1,5 +1,7 @@
 package com.example.suraksha;
 
+import static com.example.suraksha.utils.Constants.BASE_IP;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.text.TextWatcher;
@@ -24,14 +26,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import org.json.JSONObject;
 import java.util.concurrent.Executor;
-//This screen is connected with the help button for now but is to be triggered according to the risk score
+
 public class ReauthenticationActivity extends AppCompatActivity {
 
     private LinearLayout bottomContainer;
     private SharedPreferences prefs;
     private Context context;
     private boolean isLocked = false;
-    private String userUrl = "http://192.168.1.4:5000/api/user"; // backend URL
     private String mobile; // User's mobile number from prefs or Intent
 
     @Override
@@ -43,7 +44,7 @@ public class ReauthenticationActivity extends AppCompatActivity {
         prefs = getSharedPreferences("RiskPrefs", MODE_PRIVATE);
         bottomContainer = findViewById(R.id.bottomContainer);
 
-        mobile = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE).getString("mobile", ""); // get mobile number
+        mobile = getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("mobile", ""); // get mobile number
 
         String riskLevel = getIntent().getStringExtra("risk_level");
 
@@ -183,7 +184,7 @@ public class ReauthenticationActivity extends AppCompatActivity {
             JSONObject params = new JSONObject().put("mobile", mobile).put("passcode", passcode);
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
-                    userUrl + "/login", // Same login endpoint
+                    BASE_IP + ":5000/api/user/login", // Same login endpoint
                     params,
                     response -> showSuccessMessage(),
                     error -> {

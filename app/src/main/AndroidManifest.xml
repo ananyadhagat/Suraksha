@@ -100,6 +100,9 @@
             android:name=".TrainingSessionActivity"
             android:exported="true"
             android:theme="@style/Theme.Suraksha" />
-
+        <activity
+            android:name=".ReauthenticationActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Suraksha"/>
     </application>
 </manifest>

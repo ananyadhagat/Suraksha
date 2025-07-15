@@ -60,7 +60,23 @@ public class Login extends AppCompatActivity {
             finish();
             return;
         }
+        SharedPreferences surakshaPrefs = getSharedPreferences("SurakshaPrefs", MODE_PRIVATE);
+        long lockedUntil = surakshaPrefs.getLong("lock_until", 0);
+        long currentTime = System.currentTimeMillis();
 
+        if (currentTime < lockedUntil) {
+            long remainingMillis = lockedUntil - currentTime;
+            long minutes = (remainingMillis / 1000) / 60;
+            long seconds = (remainingMillis / 1000) % 60;
+
+            new AlertDialog.Builder(this)
+                    .setTitle("App Locked")
+                    .setMessage("High risk was detected recently on your account.\nPlease try again in " + minutes + " min " + seconds + " sec.")
+                    .setCancelable(false)
+                    .setPositiveButton("Exit", (d, w) -> finishAffinity())
+                    .show();
+            return;
+        }
         fetchUserNameAndShowGreeting(mobile);
         createBoxes(passcodeLayout, BOX_COUNT);
 

@@ -15,7 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -237,7 +237,12 @@ public class TrainingSessionActivity extends Activity implements SensorEventList
                 },
                 error -> Toast.makeText(this, "❌ ML Error: " + error.toString(), Toast.LENGTH_SHORT).show()
         );
-
+// Set custom timeout (e.g., 20 seconds)
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                20000, // timeout in ms
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
     }
