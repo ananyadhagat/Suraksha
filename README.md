@@ -51,7 +51,7 @@ This project aims to provide developers with a robust framework for safeguarding
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/ananyadhagat/surakshak-Hackorbit.git
+   git clone https://github.com/ananyadhagat/Suraksha.git
    ```
 
 2. **Backend Setup**
