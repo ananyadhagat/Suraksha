@@ -1,167 +1,127 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
-from bson import ObjectId
 import datetime
 import numpy as np
+import xgboost as xgb
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+from sklearn.preprocessing import MinMaxScaler
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app)
 
-# ---------- MongoDB Setup ----------
-client = MongoClient("mongodb+srv://ananya2004d:1anan.ya9@surakshak.aait0ep.mongodb.net/?retryWrites=true&w=majority&appName=Surakshak")
-db = client['surakshak_db']
-training_collection = db['training_sessions']
-risk_collection = db['risk_scores']
+# MongoDB
+client = MongoClient("your_mongo_uri")
+db = client["surakshak_db"]
+training_collection = db["training_sessions"]
+risk_collection = db["risk_scores"]
 
-# ---------- Helper Functions ----------
+# ---------- Helper ----------
 def safe_avg(arr):
     return float(np.mean(arr)) if arr else 0.0
 
-def average_behavior_vector(batch):
-    return {
-        "TypingSpeed": safe_avg([s.get("avg_typing_speed", 0) for s in batch]),
-        "DwellTime": safe_avg([safe_avg(s.get("hold_times", [])) for s in batch]),
-        "FlightTime": safe_avg([safe_avg(s.get("flight_times", [])) for s in batch]),
-        "InterKeyDelay": safe_avg([safe_avg(s.get("inter_key_delays", [])) for s in batch]),
-        "TapPressure": safe_avg([safe_avg(s.get("pressures", [])) for s in batch]),
-        "TouchSize": safe_avg([safe_avg(s.get("touch_sizes", [])) for s in batch]),
-        "TiltAngle": safe_avg([safe_avg(s.get("accel_pattern", [])) for s in batch]),
-        "GyroPattern": safe_avg([safe_avg(s.get("gyro_pattern", [])) for s in batch]),
-        "ScreenHoldTime": safe_avg([s.get("screen_hold_time", 0) for s in batch]),
-    }
+def extract_features(sample):
+    return [
+        sample.get("avg_typing_speed", 0),
+        safe_avg(sample.get("hold_times", [])),
+        safe_avg(sample.get("flight_times", [])),
+        safe_avg(sample.get("inter_key_delays", [])),
+        safe_avg(sample.get("pressures", [])),
+        safe_avg(sample.get("touch_sizes", [])),
+        safe_avg(sample.get("accel_pattern", [])),
+        safe_avg(sample.get("gyro_pattern", [])),
+        sample.get("screen_hold_time", 0)
+    ]
 
-def calculate_risk_score(vector, baseline):
-    weights = {
-        "TypingSpeed": 1.2,
-        "DwellTime": 1.0,
-        "FlightTime": 1.0,
-        "InterKeyDelay": 1.0,
-        "TapPressure": 1.5,
-        "TouchSize": 0.8,
-        "TiltAngle": 0.5,
-        "GyroPattern": 0.5,
-        "ScreenHoldTime": 0.8
-    }
+def average_vector(batch):
+    vectors = [extract_features(s) for s in batch]
+    return np.mean(vectors, axis=0)
 
-    scales = {
-        "TypingSpeed": 300.0,
-        "DwellTime": 500.0,
-        "FlightTime": 500.0,
-        "InterKeyDelay": 500.0,
-        "TapPressure": 2.0,
-        "TouchSize": 1.0,
-        "TiltAngle": 90.0,
-        "GyroPattern": 90.0,
-        "ScreenHoldTime": 3000.0
-    }
-
-    # Detect mostly idle (zero) vector
-    total_features = len(vector)
-    zero_features = sum(1 for v in vector.values() if v == 0)
-    if zero_features / total_features >= 0.8:
-        return 5.0  # low risk if mostly idle
-
-    distance = 0.0
-    for key in vector.keys() & baseline.keys():
-        diff = (vector[key] - baseline[key]) / scales.get(key, 1.0)
-        distance += weights.get(key, 1.0) * (diff ** 2)
-
-    risk = round(min(100.0, (np.sqrt(distance) / 2) * 100), 2)
-    return risk
-
-# ---------- Routes ----------
-@app.route('/upload-training-batch', methods=['POST'])
-def upload_training_batch():
-    try:
-        data = request.json
-        data['timestamp'] = datetime.datetime.now()
-        training_collection.insert_one(data)
-        print("✅ Training data uploaded for:", data.get("userID"))
-        return jsonify({"status": "success", "message": "Training batch uploaded ✅"}), 200
-    except Exception as e:
-        print("❌ Upload error:", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+# ---------- ML TRAIN ----------
 @app.route('/train-hybrid-model', methods=['POST'])
-def train_hybrid_model():
+def train_model():
     try:
-        all_data = list(training_collection.find())
-        if not all_data:
-            return jsonify({"status": "error", "message": "No training data found"}), 400
+        data = list(training_collection.find())
+        latest = data[-1]
 
-        latest_doc = all_data[-1]
-        doc_id = latest_doc["_id"]
-        user_id = latest_doc.get("userID", "user_01")
-        training_batch = latest_doc.get("training_batch", [])
+        user_id = latest["userID"]
+        batch = latest["training_batch"]
 
-        if not training_batch:
-            return jsonify({"status": "error", "message": "No training batch found"}), 400
+        # 🔹 Feature extraction
+        X = np.array([extract_features(s) for s in batch])
+        y = np.ones(len(X))  # normal user
 
-        avg_vector = average_behavior_vector(training_batch)
-        risk_score = calculate_risk_score(avg_vector, avg_vector)
+        # 🔹 Scaling
+        scaler = MinMaxScaler()
+        X_scaled = scaler.fit_transform(X)
 
-        training_collection.update_one(
-            {"_id": ObjectId(doc_id)},
-            {"$set": {
-                "average_vector": avg_vector,
-                "initial_risk_score": risk_score,
-                "model_trained_at": datetime.datetime.now()
-            }}
-        )
+        # 🔹 LSTM
+        X_lstm = X_scaled.reshape(X_scaled.shape[0], 1, X_scaled.shape[1])
+        lstm = Sequential()
+        lstm.add(LSTM(32, input_shape=(1, X.shape[1])))
+        lstm.add(Dense(1))
+        lstm.compile(optimizer='adam', loss='mse')
+        lstm.fit(X_lstm, y, epochs=3, verbose=0)
 
+        # 🔹 XGBoost
+        xgb_model = xgb.XGBClassifier()
+        xgb_model.fit(X_scaled, y)
+
+        # 🔹 Baseline vector
+        avg_vec = average_vector(batch)
+
+        # Save baseline
         risk_collection.update_one(
             {"userID": user_id},
             {"$set": {
-                "userID": user_id,
-                "average_vector": avg_vector,
-                "all_vectors": training_batch,
-                "initial_risk_score": risk_score,
+                "baseline_vector": avg_vec.tolist(),
                 "timestamp": datetime.datetime.now()
             }},
             upsert=True
         )
 
-        print("🧠 Average vector:", avg_vector)
-        print("🔥 Initial Risk Score:", risk_score)
-
         return jsonify({
             "status": "success",
-            "message": "Model trained and risk score stored ✅",
-            "avg_vector": avg_vector,
-            "risk_score": risk_score
-        }), 200
+            "message": "Model trained + baseline saved"
+        })
 
     except Exception as e:
-        print("❌ Training error:", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"error": str(e)})
 
+# ---------- RISK ----------
 @app.route('/evaluate-risk', methods=['POST'])
-def evaluate_risk():
+def evaluate():
     try:
-        vector = request.get_json(force=True)
-        if not vector:
-            return jsonify({"status": "error", "message": "Empty or invalid JSON"}), 400
+        data = request.json
+        user_id = data["userID"]
 
-        user_id = vector.get("userID", "user_01")
-        print("\n📨 Received behavior vector for evaluation:", vector)
+        record = risk_collection.find_one({"userID": user_id})
+        baseline = np.array(record["baseline_vector"])
 
-        user_record = risk_collection.find_one({"userID": user_id})
-        if not user_record or "average_vector" not in user_record:
-            return jsonify({"status": "error", "message": "No baseline vector found"}), 404
+        current = np.array([
+            data["TypingSpeed"],
+            data["DwellTime"],
+            data["FlightTime"],
+            data["InterKeyDelay"],
+            data["TapPressure"],
+            data["TouchSize"],
+            data["TiltAngle"],
+            data["GyroPattern"],
+            data["ScreenHoldTime"]
+        ])
 
-        baseline = user_record["average_vector"]
-        vector_clean = {k: v for k, v in vector.items() if k != "userID"}
+        # Distance
+        dist = np.linalg.norm(current - baseline)
 
-        risk_score = calculate_risk_score(vector_clean, baseline)
-        print(f"🔍 Real-time risk score for {user_id}: {risk_score}")
+        risk = min(100, (dist / 200) * 100)
 
-        return jsonify({"status": "success", "risk_score": risk_score}), 200
+        return jsonify({
+            "risk_score": round(risk, 2)
+        })
 
     except Exception as e:
-        print("❌ Error in evaluate-risk:", str(e))
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"error": str(e)})
 
-# ---------- Run Server ----------
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(debug=True)
